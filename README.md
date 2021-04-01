@@ -1,14 +1,18 @@
-[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/GuilianCD/nsi-sudoku)
-[!(https://img.shields.io/github/repo-size/guiliancd/nsi-sudoku?style=flat-square)]
-[!(https://img.shields.io/github/languages/code-size/guiliancd/nsi-sudoku)]
+![GitHub last commit](https://img.shields.io/github/last-commit/guiliancd/nsi-sudoku)
+
+![Code size](https://img.shields.io/github/languages/code-size/guiliancd/nsi-sudoku)
+![Lines of code](https://img.shields.io/tokei/lines/github/guiliancd/nsi-sudoku?color=%234ed628)
 
 # Sudoku (NSI)
 
-Le repo du projet de sudoku pour la nsi.
-
+Le repo du projet de sudoku pour la nsi.<br><br>
+[![Gitpod ready-to-code](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/GuilianCD/nsi-sudoku)
 
 ## Auteurs
 
  - Romain Gascoin          (TG9)
  - Guilian Celin-Davanture (TG3)
  - Gabin Maury             (TG3)
+
+
+
