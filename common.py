@@ -51,7 +51,8 @@ class SudokuGrid:
 
 
 
-
+#TODO @GuilianCD
+# Faire un logo particulier pour certains titres, comme le logo de minecraft pour minecraft., ou un fichier manquant pour le ????
 def get_random_title():
 	"""
 	Renvoie un titre de fenetre aleatoire dans la liste predetermine.

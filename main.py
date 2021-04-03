@@ -26,7 +26,7 @@ Version du 29/03/2021
 from tkinter import * 
 
 import graphics
-from theme import Themes
+import theme as Themes
 import common	
 import random	
 
@@ -36,6 +36,7 @@ if __name__ == "__main__":
 
 	root.title(common.get_random_title())
 
+	root.geometry('1000x800')
 	root.resizable(False, False) #Rends la fenêtre non redimensionnable
 	
 	cnv=Canvas(root, width=1000, height=800, bg="ivory")
@@ -49,13 +50,11 @@ if __name__ == "__main__":
 
 	gridpos = (100, 100)
 
-	#theme_bleu = Themes().BLUE
+	theme = Themes.BLUE
 
-	col = ('#d1ccc0', '#FFF')
+	graphics.display_grid(cnv, grid, gridpos, theme)
 
-	graphics.display_grid(cnv, grid, gridpos, col)
-
-	graphics.display_menu_around(cnv, gridpos, (0, 0), col)
+	graphics.display_values_menu(cnv, gridpos, (0, 0), theme)
 	
 	root.mainloop()
 	
