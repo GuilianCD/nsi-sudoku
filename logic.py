@@ -1,6 +1,7 @@
 import sqlite3
 import common
 from math import sqrt
+import random
 
 def grid_to_text(grid):
 	"""
@@ -44,17 +45,30 @@ def rows(grid):
 	"""
 	TODO retourne la liste des lignes
 	"""
-	for x in range(9):
-		for y in range(9):
-			pass
+	return grid.grid
 
-def collumns(grid):
+
+
+def columns(grid):
 	"""
-	TODO retourne la liste des collones
+	TODO retourne la liste des colonnes
 	"""
-	pass
+	columns = []
+	for y in range(9):
+		column = []
+		for x in range(9):
+			column.append(grid.get_number((x, y)))
+		columns.append(column)
+
+	return columns
+		
 
 
 if __name__ == '__main__':
 	from pprint import pprint
-	pprint(text_to_grid(grid_to_text(common.SudokuGrid())).grid)
+	grid = common.SudokuGrid()
+	for x in range(9):
+	  for y in range(9):
+	    grid.set_number((x, y), random.randint(0, 9))
+	pprint(rows(grid))
+	pprint(columns(grid))
