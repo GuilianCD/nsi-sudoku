@@ -5,35 +5,19 @@ Permet l'affichage de la grille
 
 from tkinter import *
 import random
+import math
+from functools import partial
 
+import winsound
+
+import common	
 import theme
 
-import math
+
 
 DEFAULT_SIZE = 2
-
-
-
-
-def display_rect(tkcanvas, pos, value, size=DEFAULT_SIZE, fill="#F55", width=0):
-	"""
-	Affiche un rectange a une certaine position selon une certaine taille.
-	Ce rectangle contient une valeur (affichee)
-	29/03/2021
-	"""
-	x, y = pos
-
-	#width = round(width/2)
-	"""
-	tkcanvas.create_rectangle(x + width, 
-							  y + width, 
-							  x + size - width, 
-							  y + size - width, 
-							  fill=fill, width=width)
-
-	tkcanvas.create_text(x + size/2, y + size/2, text=str(value))
-	"""
 	
+
 
 
 def display_values_menu(tkcanvas, worldgridpos, ingridpos, theme, size=DEFAULT_SIZE):
@@ -75,22 +59,11 @@ def display_grid(tkcanvas, grid, pos, theme, square_size=DEFAULT_SIZE):
 
 	size = DEFAULT_SIZE
 
-	def func():
-		pass
-
-	"""
-	print(int(math.sqrt(grid.size)))
-	print(math.sqrt(grid.size))
-	print(grid.size)
-	"""
-
 	for x1 in range(grid.size):
 		for y1 in range(grid.size):
-			#Rouge plus fonce si pair, plus clair si impair
-
 			every = grid.size//3 #Tout les (taille de la grille divisée par 3 (donc 3 pour une grille normale)), changer de couleur
 
-			ximp = (x1 // every) % 2 # (ximp : contraction de x impair) Sera 0,1,0,1, tout les /every/
+			ximp = (x1 // every) % 2 # (ximp : contraction de x impair) Sera 0 puis 1 tout les /every/ (every=3 <=> 0,0,0,1,1,1,0,0,etc...)
 			yimp = (y1 // every) % 2 
 
 			if ximp ^ yimp: #0 est faux, 1 est vrai
@@ -99,7 +72,134 @@ def display_grid(tkcanvas, grid, pos, theme, square_size=DEFAULT_SIZE):
 				col = theme.color_scheme['primary_dark']
 
 
-			button = Button(tkcanvas, text=str(grid.get_number((x1, y1))), width=size*2, height=size, background=col, command=func)
+			button = Button(tkcanvas, text=str(grid.get_number((x1, y1))), width=size*2, height=size, background=col)
 			button.grid(row=(x + x1 * square_size + x1), column=(y + y1 * square_size + y1))
 
-	#tkcanvas.pack()
+
+
+
+
+
+
+
+
+#class WidgetsHolder:
+#	"""
+#	Contiendra une liste de widgets , ce qui 
+#	permettra de simplement d'iterer et de sur chaque 
+#	appeler widger.grid_remove() par exemple, pour les 
+#	effacer de la grille, et d'appeler la fonction show() 
+#	d'un autre groupe de widgets pour l'afficher
+#	"""
+#
+#	def __init__(self, root, width, height):
+#		self.root = root
+#
+#		self.frame = Frame(root, width=width, height=height)
+#		self.widgets = []
+#
+#	def add_widget(self, widget):
+#		self.widgets.append(widget)
+#
+#	def add_widgets(self, widgets):
+#		self.widgets.extend(widgets)
+#
+#	def hide(self):
+#		for widget in self.widgets:
+#			widget.grid_remove()
+#
+#	def show(self):
+#		for widget in self.widgets:
+#			widget.grid()
+#
+
+
+
+
+
+class SudokuFrame(Frame):
+	def __init__(self, root, width, height, grid, grid_theme, size=2):
+		super().__init__(root, width=width, height=height)
+
+
+		def button_callback(x, y, button):
+			#print(f"-DEBUG : Value at {x};{y} : {grid.get_number((x,y))}")
+			new_text = "SUS"
+
+			grid.set_number((x, y), new_text)
+			button['text'] = new_text
+
+			winsound.PlaySound('sound_effect.wav', winsound.SND_FILENAME)
+
+
+		for x1 in range(grid.size):
+			for y1 in range(grid.size):
+
+				every = grid.size//3 #Tout les (taille de la grille divisée par 3 (donc 3 pour une grille normale)), changer de couleur
+
+				ximp = (x1 // every) % 2 # (ximp : contraction de x impair) Sera 0 puis 1 tout les /every/ (every=3 <=> 0,0,0,1,1,1,0,0,etc...)
+				yimp = (y1 // every) % 2 
+
+				if ximp ^ yimp: #0 est faux, 1 est vrai
+					col = grid_theme.color_scheme['primary_light']
+				else:
+					col = grid_theme.color_scheme['primary_dark']
+
+				#Une partial est utilisée pour contrecarrer
+				#le fait que referencer une variable d'une boucle
+				#comme x1/y1 donnera toujours, en finalitée,
+				#la derniere valeur de la boucle (ici 8/8)
+				#Reference : https://stackoverflow.com/a/22290388
+				button = Button(self, text=str(grid.get_number((x1, y1))), width=size*2, height=size, background=col)
+				button.config(command=partial(button_callback, x1, y1, button))
+				button.grid(row=x1, column=y1)
+
+
+
+	
+
+
+
+
+
+class Game:
+	"""
+	La classe SudokuGame encapsulera 
+	tout le code lié au differentes pages
+	de l'application (les differents menus,
+	le jeu en lui-même, etc).
+	04/04/2021
+	"""
+
+	def __init__(self, width, height, preset_title=""):
+		self.root = Tk()
+		self.root.geometry(f"{width}x{height}")
+		self.root.resizable(False, False) #Rends la fenêtre non redimensionnable
+
+		#Si preset_title n'est pas defini, il sera égal à "", ce qui est une valeur fausse
+		#Donc common.get_random_title() sera appelée
+		self.root.title(preset_title or common.get_random_title()) 
+
+		self.pages = {}
+		self.current_page = ""
+
+	def mainloop(self):
+		self.root.mainloop()
+
+	def add_page(self, page, page_name):
+		"""
+		page_name est utilisé dans le dict pour identifer uniquement chaque
+		page. Ce choix à été fait car, même si utiliser une liste semblait plus
+		simple, manipuler des nombres est moins instinctif qu'utiliser des noms.
+		"""
+		self.pages[page_name] = page
+	
+	def switch_front_page_to(self, page_name):
+		"""
+		Affiche la page associée au nom donné après avoir masqué l'actuelle
+		"""
+		self.pages[self.current_page].grid_remove()
+		self.pages[page_name].grid()
+
+		self.current_page = page_name
+		

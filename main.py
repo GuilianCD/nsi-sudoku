@@ -31,30 +31,24 @@ import common
 import random	
 
 
+WIDTH, HEIGHT = 1000, 800
+
+
 if __name__ == "__main__":
-	root = Tk()
-
-	root.title(common.get_random_title())
-
-	root.geometry('1000x800')
-	root.resizable(False, False) #Rends la fenêtre non redimensionnable
-	
-	cnv=Canvas(root, width=1000, height=800, bg="ivory")
-	cnv.pack(padx=0, pady=0)
-
 	grid = common.SudokuGrid(9)
 
 	for x in range(9):
 		for y in range(9):
 			grid.set_number((x, y), random.randint(0, 9))
 
-	gridpos = (100, 100)
 
-	theme = Themes.BLUE
 
-	graphics.display_grid(cnv, grid, gridpos, theme)
-
-	graphics.display_values_menu(cnv, gridpos, (0, 0), theme)
+	sudogame = graphics.Game(width=WIDTH, height=HEIGHT)
 	
-	root.mainloop()
+	sudoframe = graphics.SudokuFrame(sudogame.root, WIDTH, HEIGHT, grid, Themes.BLUE)
+	sudoframe.pack()
+
+
+	
+	sudogame.mainloop()
 	
