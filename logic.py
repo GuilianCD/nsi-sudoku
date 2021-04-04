@@ -44,7 +44,9 @@ def rows(grid):
 	"""
 	TODO retourne la liste des lignes
 	"""
-	pass
+	for x in range(9):
+		for y in range(9):
+			pass
 
 def collumns(grid):
 	"""
