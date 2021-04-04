@@ -11,31 +11,34 @@ def grid_to_text(grid):
 	text = f"{grid.size}:" #le premier élément du texte est la taille de la grille
 	for x in range(grid.size):
 		for y in range(grid.size):
-            if grid.get_number((x,y)) == 0 :
-                text += "&"
-            else :
-			    text += str(grid.get_number((x,y)))
-			
+			if grid.get_number((x,y)) is None:
+				text += "&"
+			else :
+				text += str(grid.get_number((x,y)))
+	return text		
+
 def text_to_grid(text):
-    """
-    Prends le texte simplifié de la grille
-    et renvoie l'objet
-    """
-    
-    
-    grid_size = sqrt(len(text))
-    grid = []
-    for x in range(grid_size):
-	    row = []
-	    for y in range(grid_size):
-            val = text[x * grid_size + y]
-		    row.append(val if val != '&' else None)
-	    grid.append(row)
+	"""
+	Prends le texte simplifié de la grille
+	et renvoie l'objet
+	"""
 
-    sudokugrid = common.SudokuGrid(grid_size)
-    sudokugrid.grid = grid #L'objet sudokugrid correspond à la grille lue
+	text = text.split(':')
+	grid_size = int(text[0]) 
+	text = text[1]
 
-    return sudokugrid
+	grid = []
+	for x in range(grid_size):
+		row = []
+		for y in range(grid_size):
+			val = text[x * grid_size + y]
+			row.append(val if val != '&' else None)
+		grid.append(row)
+
+	sudokugrid = common.SudokuGrid(grid_size)
+	sudokugrid.grid = grid #L'objet sudokugrid correspond à la grille lue
+
+	return sudokugrid
 
 def rows(grid):
 	"""
@@ -48,3 +51,8 @@ def collumns(grid):
 	TODO retourne la liste des collones
 	"""
 	pass
+
+
+if __name__ == '__main__':
+	from pprint import pprint
+	pprint(text_to_grid(grid_to_text(common.SudokuGrid())).grid)

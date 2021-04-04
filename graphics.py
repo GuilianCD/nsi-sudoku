@@ -8,16 +8,13 @@ import random
 import math
 from functools import partial
 
-import winsound
-
 import common	
 import theme
 
 
 
-DEFAULT_SIZE = 2
-	
-
+DEFAULT_SIZE = 2 
+	 
 
 
 def display_values_menu(tkcanvas, worldgridpos, ingridpos, theme, size=DEFAULT_SIZE):
@@ -83,43 +80,13 @@ def display_grid(tkcanvas, grid, pos, theme, square_size=DEFAULT_SIZE):
 
 
 
-#class WidgetsHolder:
-#	"""
-#	Contiendra une liste de widgets , ce qui 
-#	permettra de simplement d'iterer et de sur chaque 
-#	appeler widger.grid_remove() par exemple, pour les 
-#	effacer de la grille, et d'appeler la fonction show() 
-#	d'un autre groupe de widgets pour l'afficher
-#	"""
-#
-#	def __init__(self, root, width, height):
-#		self.root = root
-#
-#		self.frame = Frame(root, width=width, height=height)
-#		self.widgets = []
-#
-#	def add_widget(self, widget):
-#		self.widgets.append(widget)
-#
-#	def add_widgets(self, widgets):
-#		self.widgets.extend(widgets)
-#
-#	def hide(self):
-#		for widget in self.widgets:
-#			widget.grid_remove()
-#
-#	def show(self):
-#		for widget in self.widgets:
-#			widget.grid()
-#
-
 
 
 
 
 class SudokuFrame(Frame):
 	def __init__(self, root, width, height, grid, grid_theme, size=2):
-		super().__init__(root, width=width, height=height)
+		super().__init__(root, width=width, height=height, cursor="target")
 
 
 		def button_callback(x, y, button):
@@ -128,8 +95,6 @@ class SudokuFrame(Frame):
 
 			grid.set_number((x, y), new_text)
 			button['text'] = new_text
-
-			winsound.PlaySound('sound_effect.wav', winsound.SND_FILENAME)
 
 
 		for x1 in range(grid.size):
@@ -157,10 +122,6 @@ class SudokuFrame(Frame):
 
 
 	
-
-
-
-
 
 class Game:
 	"""

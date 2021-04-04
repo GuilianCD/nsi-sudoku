@@ -27,7 +27,7 @@ from tkinter import *
 
 import graphics
 import theme as Themes
-import common	
+import common
 import random	
 
 
