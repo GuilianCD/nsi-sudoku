@@ -43,11 +43,11 @@ GREY = Theme(
 			'primary_dark':'#d2dae2'
 			}
 		)
-LATTE = Theme(
-		theme_name="Crème café", 
+GREEN = Theme(
+		theme_name="Emeraude etincelant", 
 		colors={
-			'primary_light': '#FFF', 
-			'primary_dark':'#808e9b'
+			'primary_light': '#3edc81',  
+			'primary_dark':'#0eac51'
 			}
 		)
 BLUE = Theme(
