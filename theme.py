@@ -34,13 +34,20 @@ class Theme:
 		return self.theme_name
 
 
-#Valeurs constantes : permet d'acceder à Themes.GREY directement, sans classes ou enum ou autre diablerie.
+#Valeurs "constantes" : permet d'acceder à Themes.GREY directement, sans classes ou enum ou autre diablerie.
 
 GREY = Theme(
 		theme_name="Gris tumultueux", 
 		colors={
-			'primary_light': '#d1ccc0',
-			'primary_dark':'#FFF'
+			'primary_light': '#FFF',
+			'primary_dark':'#d2dae2'
+			}
+		)
+LATTE = Theme(
+		theme_name="Crème café", 
+		colors={
+			'primary_light': '#FFF', 
+			'primary_dark':'#808e9b'
 			}
 		)
 BLUE = Theme(
@@ -57,10 +64,3 @@ RED = Theme(
 			'primary_dark':'#FDA7DF'
 			}
 		)
-
-
-
-"""
-BLUE =  Theme(theme_name="Saveur bleutée", colors=('#0097e6', '#afc6ff'))
-RED  =  Theme(theme_name="Rouge romantique", colors=('#ff4750', '#FDA7DF')) #WIP	
-"""

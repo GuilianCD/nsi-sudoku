@@ -12,96 +12,92 @@ import common
 import theme
 
 
-
-DEFAULT_SIZE = 2 
-	 
-
-
-def display_values_menu(tkcanvas, worldgridpos, ingridpos, theme, size=DEFAULT_SIZE):
+def get_pages(sudogame, width, height, grid, grid_theme, size=2):
 	"""
-	Affiche le menu des possibilite de valeurs sudokales (adj. relatif au sudoku)
-	worldgridpos est la position de la grille dans la fenetre
-	ingridpos est la position de la case visee, en coordonnes de grille (de 0 a 8 donc.)
-	30/03/2021
+	Créée toutes les pages nécéssaires à l'application.
 	"""
-	offx, offy = worldgridpos #off(set) x/y; offset de la grille
-	gridx, gridy = ingridpos #Position du carre selectionne
 
-	menu_size = size * 1.1
-	bubble_size = size
+	sudoframe = SudokuFrame(sudogame, width, height, grid, grid_theme, size=size)
 
-	for option in range(9):
-		angle = (option/9) * 2 * math.pi #Angle en radians
+	mode_menu = Frame(sudogame.root, width=width, height=height)
 
-		x = (gridx * size) + offx  +  menu_size * math.cos(angle)
-		y = (gridy * size) + offy  +  menu_size * math.sin(angle) 
+	mainlabel = Label(mode_menu, text="Bienvenue. Avez vous un compte ?")
+	mainlabel.grid()
 
-		tkcanvas.create_oval(
-			x,
-			y,
-			x + bubble_size,
-			y + bubble_size,
-			fill="#F00"
-		)
+	guest_button = Button(mode_menu, text="Pourquoi, vous êtes flic ? (mode invité)", command=lambda : sudogame.switch_front_page_to('grid'))
+	guest_button.grid()
+
+	registered_button = Button(mode_menu, text="J'ai un compte (mode enregistré)", command=lambda : sudogame.switch_front_page_to('grid'))
+	registered_button.grid()
+
+	# ¯\_(ツ)_/¯
+	exit_button = Button(mode_menu, text="J'ai ouvert ce programme par erreur", command=sudogame.root.destroy)
+	exit_button.grid()
 
 
+	###OPTIONS MENU
+	########################################################
+	gridopts = Frame(sudogame.root, width=width, height=height)
 
+	for opt in range(9):
+		y = opt // 3
+		x = opt % 3
 
-def display_grid(tkcanvas, grid, pos, theme, square_size=DEFAULT_SIZE):
-	"""
-	Affiche une grille donnee.
-	29/03/2021
-	"""
-	x, y = pos
+		if ((x) % 2) ^ ((y) % 2): #Expliqué plus bas (#BUTTONCOLOREXPL)
+			col = grid_theme.color_scheme['primary_light']
+		else:
+			col = grid_theme.color_scheme['primary_dark']
 
-	size = DEFAULT_SIZE
+		Button(gridopts, width=size*2, height=size, text=str(opt + 1), background=col, command=partial(sudoframe.update, opt)).grid(row=y, column=x)
+	
+	########################################################
 
-	for x1 in range(grid.size):
-		for y1 in range(grid.size):
-			every = grid.size//3 #Tout les (taille de la grille divisée par 3 (donc 3 pour une grille normale)), changer de couleur
+	mode_menu.grid() # En premier car cela sera le premier menu affiché.
+	sudoframe.grid()
+	gridopts.grid()
 
-			ximp = (x1 // every) % 2 # (ximp : contraction de x impair) Sera 0 puis 1 tout les /every/ (every=3 <=> 0,0,0,1,1,1,0,0,etc...)
-			yimp = (y1 // every) % 2 
+	return {
+		"guestmenu": mode_menu,
+		"grid": sudoframe,
+		"gridopts": gridopts
+	}
 
-			if ximp ^ yimp: #0 est faux, 1 est vrai
-				col = theme.color_scheme['primary_light']
-			else:
-				col = theme.color_scheme['primary_dark']
-
-
-			button = Button(tkcanvas, text=str(grid.get_number((x1, y1))), width=size*2, height=size, background=col)
-			button.grid(row=(x + x1 * square_size + x1), column=(y + y1 * square_size + y1))
-
-
-
-
-
-
-
-
-
+	
 
 
 
 
 class SudokuFrame(Frame):
-	def __init__(self, root, width, height, grid, grid_theme, size=2):
-		super().__init__(root, width=width, height=height, cursor="target")
+	def __init__(self, sudogame, width, height, grid, grid_theme, size=2):
+		super().__init__(sudogame.root, width=width, height=height)
+		root = sudogame.root
+		
+		self.has_clicked = IntVar(self, value=0)
+
+		self.mode = None
+
+		def button_callback(pos, button):
+			sudogame.switch_front_page_to("gridopts")
+
+			self.wait_variable(self.has_clicked) #On attends un click...
+
+			opt = self.has_clicked.get()
+
+			grid.set_number(pos, opt)
+			button['text'] = str(opt)
+
+			#Maintenant, la valeur a été ajoutée à la grille, donc on reaffiche la grille.
+			sudogame.switch_front_page_to("grid")
 
 
-		def button_callback(x, y, button):
-			#print(f"-DEBUG : Value at {x};{y} : {grid.get_number((x,y))}")
-			new_text = "SUS"
+		#BUTTONCOLOREXPL <-------------
+		#BUTTONCOLOREXPL <-------------
+		#BUTTONCOLOREXPL <-------------
 
-			grid.set_number((x, y), new_text)
-			button['text'] = new_text
+		every = grid.size//3 #Tout les (taille de la grille divisée par 3 (donc 3 pour une grille normale)), changer de couleur
 
-
-		for x1 in range(grid.size):
+		for x1 in range(grid.size): 
 			for y1 in range(grid.size):
-
-				every = grid.size//3 #Tout les (taille de la grille divisée par 3 (donc 3 pour une grille normale)), changer de couleur
-
 				ximp = (x1 // every) % 2 # (ximp : contraction de x impair) Sera 0 puis 1 tout les /every/ (every=3 <=> 0,0,0,1,1,1,0,0,etc...)
 				yimp = (y1 // every) % 2 
 
@@ -116,8 +112,16 @@ class SudokuFrame(Frame):
 				#la derniere valeur de la boucle (ici 8/8)
 				#Reference : https://stackoverflow.com/a/22290388
 				button = Button(self, text=str(grid.get_number((x1, y1))), width=size*2, height=size, background=col)
-				button.config(command=partial(button_callback, x1, y1, button))
+				button.config(command=partial(button_callback, (x1, y1), button))
 				button.grid(row=x1, column=y1)
+
+	def set_player_mode(self, mode):
+		"""
+		Mode étant soit 
+		"""
+
+	def update(self, value):
+		self.has_clicked.set(value + 1)
 
 
 
@@ -144,6 +148,8 @@ class Game:
 		self.pages = {}
 		self.current_page = ""
 
+		
+
 	def mainloop(self):
 		self.root.mainloop()
 
@@ -152,15 +158,33 @@ class Game:
 		page_name est utilisé dans le dict pour identifer uniquement chaque
 		page. Ce choix à été fait car, même si utiliser une liste semblait plus
 		simple, manipuler des nombres est moins instinctif qu'utiliser des noms.
+		Il est nécéssaire d'avoir effectué page.grid(args) auparavant
 		"""
 		self.pages[page_name] = page
+
+		if not self.current_page:
+			self.current_page = page_name
+		else:
+			self.pages[page_name].grid_remove()
+
+	def add_pages(self, pages_dict):
+		for name, page in pages_dict.items():
+			self.add_page(page, name)
 	
 	def switch_front_page_to(self, page_name):
 		"""
 		Affiche la page associée au nom donné après avoir masqué l'actuelle
 		"""
+		#print(f"Switching front page to {page_name}, in dict {self.pages}")
+
+		
 		self.pages[self.current_page].grid_remove()
+		
+			
+
 		self.pages[page_name].grid()
 
 		self.current_page = page_name
+
+		#print(f"front page is now {self.current_page}")
 		

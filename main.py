@@ -41,14 +41,7 @@ if __name__ == "__main__":
 		for y in range(9):
 			grid.set_number((x, y), random.randint(0, 9))
 
-
-
 	sudogame = graphics.Game(width=WIDTH, height=HEIGHT)
-	
-	sudoframe = graphics.SudokuFrame(sudogame.root, WIDTH, HEIGHT, grid, Themes.BLUE)
-	sudoframe.pack()
-
-
-	
+	sudogame.add_pages(graphics.get_pages(sudogame, WIDTH, HEIGHT, grid, Themes.GREY))
 	sudogame.mainloop()
 	
