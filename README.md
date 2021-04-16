@@ -2,7 +2,6 @@
 
 ![Code size](https://img.shields.io/github/languages/code-size/guiliancd/nsi-sudoku)
 ![Lines of code](https://img.shields.io/tokei/lines/github/guiliancd/nsi-sudoku?color=%234ed628)
-![Lines of comment](https://tokei.rs/b1/github/guiliancd/nsi-sudoku?category=comments)
 
 # Sudoku (NSI)
 
