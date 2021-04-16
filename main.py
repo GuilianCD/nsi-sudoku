@@ -45,7 +45,7 @@ if __name__ == "__main__":
 	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 	grid = common.SudokuGrid(
-		premade_grid=[
+		init_grid=[
 			[ None, None, None,  None, None, None,  None, None, None ],
 			[ None, 3, None,  None, None, 9,  None, 6, None ],
 			[ None, None, None,  None, None, None,  None, None, None ],

@@ -11,26 +11,40 @@ class SudokuGrid:
 	Donne acces a des methodes pour changer l'etat de chaque case
 	La grille est initialisee pleine de None
 	"""
-	def __init__(self, size = 9, premade_grid=[]):
+	def __init__(self, size = 9, init_grid=[], custom_grid=[]):
 		"""
 		Fournir un tableau bidimensionnel de valeurs et de None
-		à cette fonction résultera en une grille initialisée avec
+		dans init_grid résultera en une grille initialisée avec
 		les valeurs immuables (celles définissant cette grille de
-		sudoku) placés aux valeurs et None aux autres
+		sudoku) placées aux valeurs et None aux autres
 
 		Donner par exemple
 		[
 			[ 1,    None, None ],
-			[ None, 0,    4],
-			[ None, 6,    None]
+			[ None, 0,    4    ],
+			[ None, 6,    None ]
 		]
 		résultera en une grille où l'on ne peut pas changer
-		les valeurs des ici 1, 0, 4 et 6.
+		les valeurs des ci-dessus 1, 0, 4 et 6.
 		"""
 		super(SudokuGrid, self).__init__()
 		self._size = size
 
-		if not premade_grid:
+
+		if init_grid:
+			newgrid = []
+
+			for array in init_grid:
+				newarray = []
+				for number in array:
+					is_immutable = not (number is None)
+					newarray.append({'value': number, 'immutable': is_immutable})
+				newgrid.append(newarray)
+
+			self._grid = newgrid
+		elif custom_grid:
+			self._grid = custom_grid
+		else:
 			self._grid = []
 
 			#Genere la grille vide
@@ -46,17 +60,7 @@ class SudokuGrid:
 					ll.append(number)
 
 				self._grid.append(ll)
-		else:
-			newgrid = []
-
-			for array in premade_grid:
-				newarray = []
-				for number in array:
-					is_immutable = not (number is None)
-					newarray.append({'value': number, 'immutable': is_immutable})
-				newgrid.append(newarray)
-
-			self._grid = newgrid
+		
 
 	@property
 	def grid(self):
