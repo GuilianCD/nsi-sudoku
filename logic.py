@@ -15,7 +15,9 @@ def grid_to_text(grid):
 			if grid.get_number((x,y)) is None:
 				text += "&"
 			else :
-				text += str(grid.get_number((x,y)))
+				if grid.is_immutable( (x,y) ):
+					text += "$"
+				text += str(grid.get_number((x,y)) )
 	return text		
 
 def text_to_grid(text):
@@ -28,16 +30,28 @@ def text_to_grid(text):
 	grid_size = int(text[0]) 
 	text = text[1]
 
-	grid = []
-	for x in range(grid_size):
-		row = []
-		for y in range(grid_size):
-			val = text[x * grid_size + y]
-			row.append(val if val != '&' else None)
-		grid.append(row)
+	val_list = []
+	i = 0
+	while i < len(text):
+		if text[i] == '&':
+			val_list.append({'value': None, 'immutable': False})
+		elif text[i] == '$':	#on peut regarder après car il n'y aura jamais de $ à la toute fin de text
+			next_char = text[i + 1]
+			val_list.append({'value': int(next_char) , 'immutable': True})
+			i += 1
+		else :
+			val_list.append({'value': int(text[i]), 'immutable': True})
+		i += 1
 
-	sudokugrid = common.SudokuGrid(grid_size)
-	sudokugrid.grid = grid #L'objet sudokugrid correspond à la grille lue
+	grid = []
+	for x in range(grid_size) :
+		grid_row = []
+		for y in range(grid_size) :
+			grid_row.append(val_list[x * grid_size + y])
+		grid.append(grid_row)
+
+	sudokugrid = common.SudokuGrid(custom_grid = grid)
+
 
 	return sudokugrid
 

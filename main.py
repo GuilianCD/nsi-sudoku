@@ -28,7 +28,8 @@ from tkinter import *
 import graphics
 import theme as Themes
 import common
-import random	
+import random
+import logic
 
 
 WIDTH, HEIGHT = 1000, 800
@@ -44,19 +45,7 @@ if __name__ == "__main__":
 	myappid = 'nsiedouardbranly.ggr.supersudoku' # ggr est l'acronyme des prénoms de chacun des membres du groupe
 	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-	grid = common.SudokuGrid(
-		init_grid=[
-			[ None, None, None,  None, None, None,  None, None, None ],
-			[ None, 3, None,  None, None, 9,  None, 6, None ],
-			[ None, None, None,  None, None, None,  None, None, None ],
-			[ 7, None, None,  None, 6, None,  None, None, None ],
-			[ None, None, None,  None, None, None,  None, 8, None ],
-			[ None, None, None,  None, None, 4,  None, None, None ],
-			[ None, 5, None,  None, None, None,  None, None, None ],
-			[ None, None, None,  None, None, None,  None, 1, None ],
-			[ None, None, None,  2, None, None,  None, None, None ],
-		]
-	)
+	grid = logic.text_to_grid("9:&&&&&&&&&&$3&&&$9&$6&&&&&&&&&&$7&&&$6&&&&&&&&&&&$8&&&&&&$4&&&&$5&&&&&&&&&&&&&&$1&&&&$2&&&&&")
 
 	"""
 	for x in range(9):
