@@ -330,10 +330,6 @@ class SudokuFrame(Frame):
 		gridmenu.grid(row=1, column=0)
 
 
-	def update(self, value):
-		self.has_clicked.set(value + 1)
-
-
 
 	
 
