@@ -9,10 +9,6 @@ class Theme:
 	Un theme possede:
 		un nom d'affichage
 		un dict de couleurs
-		ces couleurs sont :
-			primary_light
-			primary_dark
-			(WIP)
 	"""
 
 	
@@ -54,9 +50,12 @@ def button(theme):
 	syntaxe : tk.Button(master, **theme.button(/le theme/) )
 	"""
 	return {
-		'background'       : theme.color_scheme['button_normal'],
-		'activebackground' : theme.color_scheme['button_pressed'],
-		'activeforeground' : theme.color_scheme['button_pressed_fg']
+		'background'         : theme.color_scheme['button_normal'],
+
+		'activebackground'   : theme.color_scheme['button_pressed'],
+		'activeforeground'   : theme.color_scheme['button_pressed_fg'],
+
+		'disabledforeground' : theme.color_scheme['button_disabled_fg']
 		}
 
 def label(theme):
@@ -83,12 +82,16 @@ DEFAULT = Theme(
 			'primary_dark'      :  '#e4e6f1', 
 
 			'secondary_light'   :  '#1e1e1e',
-			'secondary_dark'    :  '#000000',
+			'secondary_dark'    :  '#000',
 
 			'background'        :  '#1e1e1e',
+
 			'button_normal'     :  '#c47e1c',
 			'button_pressed'    :  '#141414',
-			'button_pressed_fg' :  '#FFF'
+			'button_pressed_fg' :  '#FFF',
+
+			'button_disabled'   :  '#1e1e1e',
+			'button_disabled_fg':  '#FFF'
 			} 
 		)
 

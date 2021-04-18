@@ -17,9 +17,8 @@ import logic
 def get_pages(sudogame, width, height, grid, size=2):
 	"""
 	Créée toutes les pages nécéssaires à l'application.
+	Renvoie un dict des pages
 	"""
-
-	grid_theme = sudogame.theme
 
 	##################################################
 	##################### Grille #####################
@@ -31,6 +30,22 @@ def get_pages(sudogame, width, height, grid, size=2):
 	################ Menu des comptes ################
 	##################################################
 	
+	mode_menu = create_main_menu(sudogame, width, height, grid, size)
+
+	##################################################
+
+	mode_menu.grid() # En premier car cela sera le premier menu affiché.
+	sudoframe.grid()
+	#gridopts.grid()
+	
+	return {
+		"guestmenu": mode_menu,
+		"grid": sudoframe
+	}
+
+def create_main_menu(sudogame, width, height, grid, size):
+	grid_theme = sudogame.theme
+
 	mode_menu = Frame(sudogame.root, width=width, height=height, **theme.frame(grid_theme))
 	mode_menu.grid_propagate(0)
 
@@ -146,17 +161,7 @@ def get_pages(sudogame, width, height, grid, size=2):
 		**theme.button(grid_theme))
 	guestlogin.grid(row=get_next_row())
 
-	##################################################
-
-	mode_menu.grid() # En premier car cela sera le premier menu affiché.
-	sudoframe.grid()
-	#gridopts.grid()
-	
-	return {
-		"guestmenu": mode_menu,
-		"grid": sudoframe
-	}
-
+	return mode_menu
 
 
 class SudokuFrame(Frame):
@@ -164,22 +169,43 @@ class SudokuFrame(Frame):
 		super().__init__(sudogame.root, width=width, height=height, **theme.frame(sudogame.theme))
 		root = sudogame.root
 
+		#On garde une référence pour undo() et play()
+		self.sudogame = sudogame
+
+		#Gardera une trace des coups joués
+		self.history = []
+
 		#Cette ligne permet d'ignorer le comportement de base de la Frame,
 		#qui est de s'ajuster à la taille de ce qu'elle contient.
 		#Ainsi, on peut redimensionner la Frame à la taille que l'on veut.
 		self.grid_propagate(0) 
 
 		self.grid_rowconfigure(0, weight=1)
-		self.grid_columnconfigure(0, weight=1)
 		
 		#Frame contenant la Frame contenant la grille de sudoku
 		#Utilisé pour centrer la grille
 		gridframe = Frame(self, borderwidth=5, relief='groove')
 
-
+		
 		SETTINGS_BTN_SIZE = 10
 		settings_button = Button(self, text="Options", width=SETTINGS_BTN_SIZE, height=int(SETTINGS_BTN_SIZE/2), **theme.button(sudogame.theme))
-		settings_button.grid(sticky=NW)
+		settings_button.grid(row=0, column=0, sticky=NW)
+		
+		
+
+		UNDO_BTN_SIZE = 6
+		undo_button = Button(
+			self, 
+			text="Ctrl+Z", 
+			width=UNDO_BTN_SIZE, 
+			height=int(UNDO_BTN_SIZE/2), 
+			**theme.button(sudogame.theme), 
+			command=lambda : self.undo(grid))
+		undo_button.grid(row=0, column=2, sticky=SE)
+
+		self.undo_btn = undo_button
+
+		self.turn_off_undo()
 
 
 		GRID_SIZE = width/2
@@ -236,6 +262,11 @@ class SudokuFrame(Frame):
 		menu_callback("", previously_clicked_button_index)
 
 
+
+		#Garde une référence de tout les boutons de la grille
+		self.gridbuttons = []
+
+
 		def grid_callback(pos, button):
 			"""
 			Appelée quand on veut remplacer un élément de la grille
@@ -244,6 +275,13 @@ class SudokuFrame(Frame):
 				pass
 			else:
 				opt = self.current_option.get()
+	
+				if grid.get_number(pos) == opt:
+					return
+				if (grid.get_number(pos) is None) and (opt == str(None)):
+					return
+				
+				self.play(pos, opt, grid.get_number(pos))
 
 				grid.set_number(pos, opt)
 
@@ -252,6 +290,7 @@ class SudokuFrame(Frame):
 
 				button['text'] = str(opt)
 
+
 		#BUTTONCOLOREXPL <-------------
 		#BUTTONCOLOREXPL <-------------
 
@@ -259,7 +298,10 @@ class SudokuFrame(Frame):
 
 		#Génération des boutons de la grille
 		for x1 in range(grid.size): 
+			#print(f'-> x looping... ({x1})')
+			gridbuttonarray = []
 			for y1 in range(grid.size):
+				#print(f'-> -> y looping... ({y1})')
 				ximp = (x1 // every) % 2 # (ximp : contraction de x impair) Sera 0 puis 1 tout les /every/ (every=3 <=> 0,0,0,1,1,1,0,0,etc...)
 				yimp = (y1 // every) % 2 
 
@@ -303,6 +345,8 @@ class SudokuFrame(Frame):
 					height=int(GRID_SIZE//grid.size),
 					font=GRID_AND_MENU_FONT)
 
+				gridbuttonarray.append(button)
+
 				if grid.is_immutable((x1, y1)):
 					button.config(state=DISABLED)
 					
@@ -325,13 +369,41 @@ class SudokuFrame(Frame):
 				subgridframe.grid_columnconfigure(x1, weight=1)
 				subgridframe.grid_rowconfigure(y1, weight=1)
 		
+			self.gridbuttons.append(gridbuttonarray)
 
-		gridframe.grid(row=0, column=0)
-		gridmenu.grid(row=1, column=0)
+		gridframe.grid(row=0, column=1, sticky="")
+		gridmenu.grid(row=1, column=0, columnspan=3)
 
 
+	def turn_off_undo(self):
+		self.undo_btn.config(state=DISABLED, bg=self.sudogame.theme.color_scheme['button_disabled'])
 
-	
+	def turn_on_undo(self):
+		self.undo_btn.config(state=NORMAL, bg=self.sudogame.theme.color_scheme['button_normal'])
+
+	def play(self, pos, value, previous_value):
+		self.history.append({'pos': pos, 'value': value, 'previous': previous_value})
+
+		self.turn_on_undo()
+
+	def undo(self, grid):
+		if index_plus_1 := len(self.history): #Seulement si l'historique des coups contient >= 1 élément.
+			latest_play = self.history.pop(index_plus_1 - 1)
+
+			pos, value = latest_play['pos'], latest_play['previous']
+
+			grid.set_number(pos=pos, value=value) 
+
+			self.gridbuttons[pos[0]]
+			self.gridbuttons[pos[0]][pos[1]]
+
+			self.gridbuttons[pos[0]][pos[1]]['text'] = str(value) if not (value in [None, 'None']) else ""
+
+			if len(self.history) == 0:
+				self.turn_off_undo()
+
+			return latest_play
+		
 
 class Game:
 	"""

@@ -25,10 +25,12 @@ Version du 29/03/2021
 
 from tkinter import * 
 
+import random	
+
 import graphics
 import theme as Themes
 import common
-import random	
+import logic
 
 
 WIDTH, HEIGHT = 1000, 800
@@ -57,7 +59,6 @@ if __name__ == "__main__":
 			[ None, None, None,  2, None, None,  None, None, None ],
 		]
 	)
-
 	"""
 	for x in range(9):
 		for y in range(9):
