@@ -47,7 +47,7 @@ def get_pages(sudogame, width, height, size=2):
 
 	gridchoice = create_gridchoice_menu(sudogame, width, height)
 
-	mode_menu.grid() # En premier car cela sera le premier menu affiché.
+	mode_menu.grid()
 	sudoframe.grid()
 	difficulty_menu.grid()
 	gridchoice.grid()
@@ -90,6 +90,10 @@ def create_gridchoice_menu(sudogame, width, height):
 	gridchoice_menu.grid_rowconfigure(0, weight=1)
 
 
+	#######################################################
+	##################  TEMPORAIRE ########################
+	#######################################################
+
 	def generate_grid():
 		nums = []
 		for _ in range(10):
@@ -105,6 +109,10 @@ def create_gridchoice_menu(sudogame, width, height):
 	grids = []
 	for _ in range(7):
 		grids.append(generate_grid())
+
+	#######################################################
+	#######################################################
+	
 
 	BOTTOM_FRAME_SIZE = 160
 	OPTION_SIZE = 140
@@ -174,18 +182,42 @@ def create_gridchoice_menu(sudogame, width, height):
 		fr.grid_propagate(0)
 		fr.grid(row=i)
 
-		Label(fr, text="Work in progress, come back later! :)", **theme.label(sudogame.theme), font=('Arial', 30)).grid(row=1, sticky=W)
+		curr_grid = logic.text_to_grid(grid)
+
+		CNV_BOX_SIZE = 15
+		HALF_BOX = 8
+		CNV_OFFSET = 2
+
+		cnv_width = CNV_BOX_SIZE * curr_grid.size
+		cnv_height= CNV_BOX_SIZE * curr_grid.size
+
+		cnv = Canvas(fr, width=cnv_width - 2 *CNV_OFFSET, height=cnv_height - 2 * CNV_OFFSET, borderwidth=0, highlightthickness=0)
+
+		cnv.create_rectangle(0, 0, cnv_width, cnv_height, fill='black')
+
+		for x in range(curr_grid.size):
+			for y in range(curr_grid.size):
+				x1, y1 = CNV_OFFSET + x + x * CNV_BOX_SIZE, CNV_OFFSET + y + y * CNV_BOX_SIZE
+				cnv.create_rectangle(x1, y1, x1 + CNV_BOX_SIZE, y1 + CNV_BOX_SIZE , fill='white')
+
+				cnv.create_text(x1 - HALF_BOX, y1 - HALF_BOX, text=curr_grid.get_number((x, y)))
+
+		cnv.grid(row=0, rowspan=10)
+
+
+		Label(fr, text="SAMPLE BIG TEXT", **theme.label(sudogame.theme), font=('Arial', 30)).grid(row=1, column=1, sticky=W)
 		
-		Label(fr, text=f"grille : {grid}", **theme.label(sudogame.theme), font=('Arial', 10)).grid(row=2, sticky=W)
+		Label(fr, text="sample text", **theme.label(sudogame.theme), font=('Arial', 10)).grid(row=2, column=1, sticky=W)
 
 		fr.grid_rowconfigure(3, weight=1)
-		fr.grid_columnconfigure(1, weight=1)
+		fr.grid_columnconfigure(2, weight=1)
 
 		Button(fr, text="Selectionner", **theme.button(sudogame.theme), command=lambda : chosen_grid.set(index)).grid(row=4, column=2, sticky=SE)
 
+
 		grids_content.grid_rowconfigure(content_counter.next(), minsize=SPACE_BETWEEN_SIZE)
 
-	SCROLL_DELTA = 15
+	SCROLL_DELTA = 25
 	
 	def scroll_content(event):
 		"""
@@ -391,7 +423,7 @@ class SudokuFrame(Frame):
 			width=UNDO_BTN_SIZE, 
 			height=int(UNDO_BTN_SIZE/2), 
 			**theme.button(sudogame.theme), 
-			command=lambda : self.undo(grid))
+			command=self.undo)
 		undo_button.grid(row=0, column=2, sticky=SE)
 
 		self.undo_btn = undo_button
@@ -472,6 +504,7 @@ class SudokuFrame(Frame):
 		GRID_AND_MENU_FONT = self.GRID_AND_MENU_FONT
 
 		grid = logic.text_to_grid(sudogame.grid.get())
+		self.sudogrid = grid
 
 		def grid_callback(pos, button):
 			"""
@@ -589,7 +622,9 @@ class SudokuFrame(Frame):
 
 		self.turn_on_undo()
 
-	def undo(self, grid):
+	def undo(self):
+		grid = self.sudogrid
+
 		if index_plus_1 := len(self.history): #Seulement si l'historique des coups contient >= 1 élément.
 			latest_play = self.history.pop(index_plus_1 - 1)
 
