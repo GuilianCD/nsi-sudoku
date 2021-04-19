@@ -128,11 +128,11 @@ def get_random_title():
 	#"titre" : poids (chance d'obtenir)
 	#Le poids équivaut à un coefficient
 	titles = {
-		"Sudoku" : 20,
+		"Sudoku" : 30,
 		"Minecraft" : 7,
-		"Sudoku 2 (Maintenant avec 0% de viande humaine)" : 5,
+		"Sudoku 2 (Maintenant avec 0% de viande humaine)" : 6,
 		"Sudoku 2 (avec 100% de viande humaine..?)" : 4,
-		"Ceci n'est pas un titre de fenêtre." : 6, #Magritte
+		"Ceci n'est pas un titre de fenêtre." : 7, #Magritte
 		"[object Object]" : 3,
 		"print('Sudoku')" : 3,
 		"""Exception in thread "main" java.lang.NullPointerException at com.oracle.sun.main(Main.java:31)""" : 5

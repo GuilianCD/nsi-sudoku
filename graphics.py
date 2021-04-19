@@ -13,8 +13,13 @@ import theme
 
 import logic
 
+from graph_utils import (
+	RowCounter,
+	BetterEntry
+)
 
-def get_pages(sudogame, width, height, grid, size=2):
+
+def get_pages(sudogame, width, height, size=2):
 	"""
 	Créée toutes les pages nécéssaires à l'application.
 	Renvoie un dict des pages
@@ -24,26 +29,248 @@ def get_pages(sudogame, width, height, grid, size=2):
 	##################### Grille #####################
 	##################################################
 
-	sudoframe = SudokuFrame(sudogame, width, height, grid, size=size)
+	sudoframe = SudokuFrame(sudogame, width, height, size=size)
 
 	##################################################
 	################ Menu des comptes ################
 	##################################################
 	
-	mode_menu = create_main_menu(sudogame, width, height, grid, size)
+	mode_menu = create_main_menu(sudogame, width, height, size)
+
+	##################################################
+	############## Menu des difficultés ##############
+	##################################################
+
+	difficulty_menu = create_difficulty_menu(sudogame, width, height)
 
 	##################################################
 
+	gridchoice = create_gridchoice_menu(sudogame, width, height)
+
 	mode_menu.grid() # En premier car cela sera le premier menu affiché.
 	sudoframe.grid()
-	#gridopts.grid()
+	difficulty_menu.grid()
+	gridchoice.grid()
 	
 	return {
 		"guestmenu": mode_menu,
-		"grid": sudoframe
-	}
+		"grid": sudoframe,
+		"difficultymenu": difficulty_menu,
+		"gridchoice" : gridchoice
+	}, "guestmenu" #Indique quel menu sera le premier
 
-def create_main_menu(sudogame, width, height, grid, size):
+
+def create_gridchoice_menu(sudogame, width, height):
+	"""
+	Créé le menu du choix de la grille
+	"""
+
+	"""
+	Ce menu est organisé de façon compliquée.
+	D'abord, on créée la frame qui contiendra la page (gridchoice_menu)
+	Cette frame contiendra deux autres frames : 
+		une grande en haut
+		une plus petite en bas
+	Celle du haut contient les grilles que l'on peut choisir,
+	celle du bas contient les boutons et autres options.
+
+	Dans la frame du haut, on insère une autre frame. On fait ceci
+	pour pouvoir déplacer la dite frame via place(), pour simuler
+	un effet de défilement, indisponible sur Frame.
+
+	Dans cette derniere frame enfin, on insère une frame pour chaque
+	grille de sudoku, avec les informations nécéssaires.
+	"""
+
+
+	gridchoice_menu = Frame(sudogame.root, width=width, height=height, **theme.frame(sudogame.theme))
+	gridchoice_menu.focus()
+	gridchoice_menu.grid_propagate(0)
+
+	gridchoice_menu.grid_rowconfigure(0, weight=1)
+
+
+	def generate_grid():
+		nums = []
+		for _ in range(10):
+			nums.append(random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9]))
+
+		c = RowCounter()
+
+		def next():
+			return nums[c.next()]
+
+		return f"9:&&&&&&&&&&${next()}&&&${next()}&${next()}&&&&&&&&&&${next()}&&&${next()}&&&&&&&&&&&${next()}&&&&&&${next()}&&&&${next()}&&&&&&&&&&&&&&${next()}&&&&${next()}&&&&&"
+		
+	grids = []
+	for _ in range(7):
+		grids.append(generate_grid())
+
+	BOTTOM_FRAME_SIZE = 160
+	OPTION_SIZE = 140
+	SPACE_BETWEEN_SIZE = 5
+
+	content_scroll_y = IntVar(gridchoice_menu, 0)
+
+	top_frame = Frame(gridchoice_menu, **theme.frame(sudogame.theme), width=width, height=height-BOTTOM_FRAME_SIZE)
+	#top_frame.grid_columnconfigure(0, weight=1)
+	top_frame.grid(row=0)
+
+	grids_content = Frame(top_frame, **theme.frame(sudogame.theme), width=width, height=(OPTION_SIZE + SPACE_BETWEEN_SIZE)*len(grids))
+	grids_content.place(y=0)
+
+	bottom_frame = Frame(
+		gridchoice_menu,
+		**theme.frame(sudogame.theme), 
+		bg=sudogame.theme.color_scheme['secondary_dark'],
+		width=width, 
+		height=BOTTOM_FRAME_SIZE, 
+		borderwidth=4, 
+		relief=SUNKEN, 
+		padx=5,
+		pady=5
+		)
+	bottom_frame.grid_propagate(0)
+	bottom_frame.grid(row=1)
+
+	bottom_frame.grid_columnconfigure(1, weight=1)
+
+	bottom_counter = RowCounter()
+
+	label = Label(bottom_frame, **theme.label(sudogame.theme), text="Ou entrez votre propre grille :", font=('Arial', 14), bg=sudogame.theme.color_scheme['secondary_dark'])
+	label.grid(row=bottom_counter.next(), sticky=W)
+
+	custom_grid_entry = BetterEntry(bottom_frame, "Insérez la version texte de la grille...", width=80)
+	custom_grid_entry.widget.grid(row=bottom_counter.next(), sticky=W)
+
+	chosen_grid = IntVar(gridchoice_menu, value=-2)
+
+	def play_grid():
+		if chosen_grid.get() == -2:
+			return
+
+		if chosen_grid.get() == -1:
+			grid = custom_grid_entry.get()
+		else:
+			grid = grids[chosen_grid.get()]
+
+		sudogame.grid.set(grid)
+		sudogame.get_page("grid").init_grid()
+
+		sudogame.switch_front_page_to("grid")
+
+	Button(bottom_frame, text="Selectionner cette grille", **theme.button(sudogame.theme), command=lambda : chosen_grid.set(-1)).grid(row=bottom_counter.next(), sticky=W)
+
+	bottom_frame.grid_rowconfigure(bottom_counter.next(), weight=1)
+
+	Button(bottom_frame, text="Jouer !", width=16, height=4, **theme.button(sudogame.theme), command=play_grid).grid(row=bottom_counter.next(), column=2, sticky=SE)
+
+
+	content_counter = RowCounter()
+
+	for index, grid in enumerate(grids):
+		i = content_counter.next()
+		fr = Frame(grids_content, **theme.frame(sudogame.theme), height=OPTION_SIZE, width=width, borderwidth=4, relief=RIDGE)
+		fr.grid_propagate(0)
+		fr.grid(row=i)
+
+		Label(fr, text="Work in progress, come back later! :)", **theme.label(sudogame.theme), font=('Arial', 30)).grid(row=1, sticky=W)
+		
+		Label(fr, text=f"grille : {grid}", **theme.label(sudogame.theme), font=('Arial', 10)).grid(row=2, sticky=W)
+
+		fr.grid_rowconfigure(3, weight=1)
+		fr.grid_columnconfigure(1, weight=1)
+
+		Button(fr, text="Selectionner", **theme.button(sudogame.theme), command=lambda : chosen_grid.set(index)).grid(row=4, column=2, sticky=SE)
+
+		grids_content.grid_rowconfigure(content_counter.next(), minsize=SPACE_BETWEEN_SIZE)
+
+	SCROLL_DELTA = 15
+	
+	def scroll_content(event):
+		"""
+		Va tenter de faire défiler le menu.
+		Si la taille du menu défilable est plus petite que celle
+		du contenant, on ne défile pas.
+		Sinon, on ajoute SCROLL_DELTA * (event.delta / abs(event.delta)) 
+		a l'offset. Ce nombre est une constante multiplié soit par 1 si 
+		le delta est positif (si x>0, x/abs(x) = 1) ou -1 si négatif
+		(si x<0, x/abs(x) = -1).
+		Si le menu défilable dépasse, on le remet aux bonnes coordonnées.
+		Ainsi, le contenant est toujours plein du menu défilable.
+		"""
+		if grids_content.winfo_height() <= (height - BOTTOM_FRAME_SIZE):
+			return
+
+		new_offset = content_scroll_y.get() + SCROLL_DELTA * (event.delta / abs(event.delta))
+		if new_offset > 0:
+			new_offset = 0
+
+		if new_offset - (height - BOTTOM_FRAME_SIZE) < -1 * grids_content.winfo_height():
+			new_offset = -1 * grids_content.winfo_height() + (height - BOTTOM_FRAME_SIZE)
+		
+		
+
+		content_scroll_y.set(new_offset)
+
+		grids_content.place_configure(x=0, y=content_scroll_y.get())
+
+	sudogame.root.bind("<MouseWheel>", scroll_content)
+
+	return gridchoice_menu
+
+
+def create_difficulty_menu(sudogame, width, height):
+	"""
+	Créé le menu du choix de la difficulté
+	"""
+	current_theme = sudogame.theme
+
+	difficulty_menu = Frame(sudogame.root, width=width, height=height, **theme.frame(current_theme))
+	difficulty_menu.grid_propagate(0)
+
+	counter = RowCounter()
+
+	def difficulty_callback(difficulty):
+		sudogame.difficulty.set(difficulty)
+
+		sudogame.switch_front_page_to("gridchoice")
+
+
+	#Fait que la colonne prendra le maximum d'espace disponible
+	difficulty_menu.grid_columnconfigure(0, weight=1)
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=100)
+
+	label = Label(difficulty_menu, text="Choissisez une difficulté.", **theme.label(current_theme), font=("Arial", 25))
+	label.grid(row=counter.next())    
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=10)
+
+	BTN_WIDTH = 10
+	
+	easy_btn   = Button(difficulty_menu, text="Facile",  command=lambda : difficulty_callback("easy"),   **theme.button(current_theme), width=BTN_WIDTH)
+	easy_btn.grid(row=counter.next())
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
+
+	medium_btn = Button(difficulty_menu, text="Moyen",   command=lambda : difficulty_callback("medium"), **theme.button(current_theme), width=BTN_WIDTH)
+	medium_btn.grid(row=counter.next())
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
+
+	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("expert"), **theme.button(current_theme), width=BTN_WIDTH)
+	expert_btn.grid(row=counter.next())
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=100)
+
+	return difficulty_menu
+
+
+def create_main_menu(sudogame, width, height, size):
+	"""
+	Créé le menu de choix du mode (invité ou utilisateur)
+	"""
 	grid_theme = sudogame.theme
 
 	mode_menu = Frame(sudogame.root, width=width, height=height, **theme.frame(grid_theme))
@@ -55,77 +282,41 @@ def create_main_menu(sudogame, width, height, grid, size):
 	mode_menu_container = Frame(mode_menu, width=width, height=height, **theme.frame(grid_theme))
 	mode_menu_container.grid(row=0, column=0)
 
-	current_row = 0
-	def get_next_row():
-		"""
-		Permet de compter automatiquement les rows déja 
-		prises et d'avoir accès à la prochaine.
-		Ainsi, on a plus besoin de manuellement changer
-		chaque appel à .grid(row=X)
-		"""
-		nonlocal current_row
-		current_row += 1
-		return current_row - 1
+	counter = RowCounter()
 
 	mainlabel = Label(mode_menu_container, text="Bienvenue.", font=("Arial", 25), **theme.label(grid_theme))
-	mainlabel.grid(row=get_next_row())
+	mainlabel.grid(row=counter.next())
 
 	#Petit espace pour séparer le "titre" du reste
-	mode_menu_container.grid_rowconfigure(get_next_row(), minsize=20)
+	mode_menu_container.grid_rowconfigure(counter.next(), minsize=20)
 
 	PLACEHOLDER_COLOR = "#5c5c5c"
 	TEXT_COLOR = "#000"
 
-	def clear_placeholder(entry, placeholder, isPassword):
-		if entry.get() == placeholder: #Si le texte est différent du placeholder, c'est un texte entré par l'utilisateur.
-			if isPassword:
-				entry.config(show='*')
-			entry.config(foreground=TEXT_COLOR)
-			entry.delete(0, END)
 
-	def set_placeholder(entry, placeholder):
-		if entry.get(): #Si il y a du texte, l'utilisateur a entré quelque chose
-			return
-		entry.config(show='')
-		entry.config(foreground=PLACEHOLDER_COLOR)
-		entry.insert(0, placeholder)
-
-	#D'abord, on définit le placeholder
 	USR_PLACEHOLDER = "Identifiant"
-	#On définit l'entry
-	usr_entry = Entry(mode_menu_container, width=60)
-	#la positionne
-	usr_entry.grid(row=get_next_row())
-	#Quand on clique sur l'entry, si le texte est le placeholder, elle va enlever le placeholder, et remettre sa couleur de texte à noir au lieu de gris
-	usr_entry.bind("<FocusIn>", lambda e : clear_placeholder(usr_entry, USR_PLACEHOLDER, False))
-	#Si il n'y a rien d'écrit, Met le texte en gris, écrit le placeholder.
-	usr_entry.bind("<FocusOut>", lambda e : set_placeholder(usr_entry, USR_PLACEHOLDER))
-	#On appelle cette fonction pour mettre le placeholder de manière correcte.
-	set_placeholder(usr_entry, USR_PLACEHOLDER)
-
 	PWD_PLACEHOLDER = "Mot de passe"
-	pwd_entry = Entry(mode_menu_container, width=60, show='*')
-	pwd_entry.grid(row=get_next_row())
-	#La seule différence ici est que le 3ème argument, ici True, indique que c'est un mot de passe
-	#Et va donc, quand il efface le placeholder, remettre l'affichage a des étoiles (*) au lieu de texte normal
-	pwd_entry.bind("<FocusIn>", lambda e : clear_placeholder(pwd_entry, PWD_PLACEHOLDER, True))
-	pwd_entry.bind("<FocusOut>", lambda e : set_placeholder(pwd_entry, PWD_PLACEHOLDER))
-	set_placeholder(pwd_entry, PWD_PLACEHOLDER)
+
+	usr_entry = BetterEntry(mode_menu_container, USR_PLACEHOLDER, width=60)
+	usr_entry.widget.grid(row=counter.next())
+
+	pwd_entry = BetterEntry(mode_menu_container, PWD_PLACEHOLDER, is_password=True, width=60)
+	pwd_entry.widget.grid(row=counter.next())
 
 	#Petit espace entre les entry fields et les boutons
-	mode_menu_container.grid_rowconfigure(get_next_row(), minsize=20)
+	mode_menu_container.grid_rowconfigure(counter.next(), minsize=20)
 
 
 	def login(username=None, password=None):
 		if (username is None) and (password is None):
 			#Mode invité
-			sudogame.switch_front_page_to('grid')
+			sudogame.switch_front_page_to('difficultymenu')
 		else:
 			if not (username and password):
 				#Pas d'identifiant et/ou de mdp donné
 				return
 			#Mode connecté
-			sudogame.switch_front_page_to('grid')
+			sudogame.switch_front_page_to('difficultymenu')
 
 
 	def get_text(entry, placeholder_to_check_against):
@@ -146,30 +337,30 @@ def create_main_menu(sudogame, width, height, grid, size):
 		),
 		**theme.button(grid_theme)
 	)
-	loginbutton.grid(row=get_next_row())
+	loginbutton.grid(row=counter.next())
 
 	#Espace en dessous pour le mode invité
-	mode_menu_container.grid_rowconfigure(get_next_row(), minsize=20)
+	mode_menu_container.grid_rowconfigure(counter.next(), minsize=20)
 
 	guestlabel = Label(mode_menu_container, text="Vous souhaitez être anonyme ?", **theme.label(grid_theme))
-	guestlabel.grid(row=get_next_row())
+	guestlabel.grid(row=counter.next())
 
 	guestlogin = Button(
 		mode_menu_container, 
 		text='mode invité', 
 		command=login, 
 		**theme.button(grid_theme))
-	guestlogin.grid(row=get_next_row())
+	guestlogin.grid(row=counter.next())
 
 	return mode_menu
 
 
 class SudokuFrame(Frame):
-	def __init__(self, sudogame, width, height, grid, size=2):
+	def __init__(self, sudogame, width, height, size=2):
 		super().__init__(sudogame.root, width=width, height=height, **theme.frame(sudogame.theme))
 		root = sudogame.root
 
-		#On garde une référence pour undo() et play()
+		#On garde une référence
 		self.sudogame = sudogame
 
 		#Gardera une trace des coups joués
@@ -209,10 +400,14 @@ class SudokuFrame(Frame):
 
 
 		GRID_SIZE = width/2
+		self.GRID_SIZE = GRID_SIZE
 
 		#Frame contenant la grille de sudoku
 		subgridframe = Frame(gridframe, width=GRID_SIZE, height=GRID_SIZE) 
 		subgridframe.grid_propagate(0) 
+
+		#Cette référence est utilisée pour créer dynamiquement la grille de sudoku
+		self.subgridframe = subgridframe
 
 		subgridframe.grid(row=0, column=0)
 		gridframe.grid_rowconfigure(0, weight=1)
@@ -227,6 +422,7 @@ class SudokuFrame(Frame):
 		self.current_option = StringVar(self, value=None)
 
 		GRID_AND_MENU_FONT = ("Arial", 25)
+		self.GRID_AND_MENU_FONT = GRID_AND_MENU_FONT
 
 		gridmenu_buttons = []
 		previously_clicked_button_index = 9
@@ -266,6 +462,16 @@ class SudokuFrame(Frame):
 		#Garde une référence de tout les boutons de la grille
 		self.gridbuttons = []
 
+		gridframe.grid(row=0, column=1, sticky="")
+		gridmenu.grid(row=1, column=0, columnspan=3)
+
+	def init_grid(self):
+		subgridframe = self.subgridframe
+		sudogame = self.sudogame
+		GRID_SIZE = self.GRID_SIZE
+		GRID_AND_MENU_FONT = self.GRID_AND_MENU_FONT
+
+		grid = logic.text_to_grid(sudogame.grid.get())
 
 		def grid_callback(pos, button):
 			"""
@@ -371,9 +577,6 @@ class SudokuFrame(Frame):
 		
 			self.gridbuttons.append(gridbuttonarray)
 
-		gridframe.grid(row=0, column=1, sticky="")
-		gridmenu.grid(row=1, column=0, columnspan=3)
-
 
 	def turn_off_undo(self):
 		self.undo_btn.config(state=DISABLED, bg=self.sudogame.theme.color_scheme['button_disabled'])
@@ -431,14 +634,14 @@ class Game:
 			#Si aucun des cas spéciaux, l'image par défaut
 			self.root.iconbitmap("res/sudoku.ico")
 		
-		
+		self.difficulty = StringVar(self.root, value="")
 
 		self.root.title(title) 
 
 		self.pages = {}
 		self.current_page = ""
 
-		
+		self.grid = StringVar(self.root)
 
 	def mainloop(self):
 		self.root.mainloop()
@@ -457,8 +660,15 @@ class Game:
 		else:
 			self.pages[page_name].grid_remove()
 
-	def add_pages(self, pages_dict):
+	def get_page(self, page_name):
+		return self.pages[page_name]
+
+	def add_pages(self, pages_dict, first_page_name):
+		self.add_page(pages_dict[first_page_name], first_page_name)
+
 		for name, page in pages_dict.items():
+			if name == first_page_name:
+				continue
 			self.add_page(page, name)
 	
 	def switch_front_page_to(self, page_name):

@@ -82,7 +82,7 @@ DEFAULT = Theme(
 			'primary_dark'      :  '#e4e6f1', 
 
 			'secondary_light'   :  '#1e1e1e',
-			'secondary_dark'    :  '#000',
+			'secondary_dark'    :  '#141414',
 
 			'background'        :  '#1e1e1e',
 
