@@ -95,15 +95,44 @@ def text_to_grid(text):
 
 def rows(grid):
 	"""
-	TODO retourne la liste des lignes
+	Fait par Gabin Maury
+	Prend une grille de sudoku (objet) et retourne la liste des lignes dans l'ordre
 	"""
-	return grid.grid
+	rows = []
+	for x in range(9):
+		row = []
+		for y in range(9):
+			row.append(grid.get_number(x,y))
+	return rows
 
+
+def squares(grid):
+	"""
+	Fait par Gabin Maury
+	Prend une grille de sudoku (objet) et retourne une liste contenant 9 listes representant les differents carrés de 3x3 dans l'ordre
+	"""
+	def squarepos(x,y):
+		"""
+		Prends une position en argument et retourne le numero du carré (de 0 a 8)
+		"""
+		squarecoordx = str(row//3) #recupere la position x du carré actuel
+		squarecoordy = str(column//3) #recupere la position y du carré actuel
+		return int(squarecoordx + squarecoordy,base=3)#relie les deux positions (de 00 a 22), les considère comme un nombre en base 3 et les convertis en base 10 pour obtenir la bonne position de 0 a 8
+
+
+	output = []
+	for _ in range(len(grid)):
+		output.append()
+	for row in grid:
+		for column in row:
+			output[squarepos(row,column)].append(grid.get_number((row,column)))#on ajoute l'element actuel dans la bonne liste			
+	return output
 
 
 def columns(grid):
 	"""
-	TODO retourne la liste des colonnes
+	Fait par Gabin Maury
+	Prend une grille de sudoku (objet) et retourne la liste des colonnes dans l'ordre
 	"""
 	columns = []
 	for y in range(9):
@@ -111,6 +140,8 @@ def columns(grid):
 		for x in range(9):
 			column.append(grid.get_number((x, y)))
 		columns.append(column)
+
+	return columns
 
 	return columns
 		
