@@ -3,6 +3,44 @@ import common
 from math import sqrt
 import random
 
+# Création de la connection à la base de données
+# Base crée dans le repertoire courant si elle n'existe pas encore
+conn = sqlite3.connect("sudoku.db")
+
+# Création d'un curseur
+c = conn.cursor()
+
+def creer_table_grilles():
+	"""
+	création de la table qui va contenir les différentes grilles
+	"""
+	c.executescript("""
+	CREATE TABLE IF NOT EXISTS grilles(
+	id_grille INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+	grille TEXT,
+	difficulte TEXT
+	)""")
+
+def creer_table_joueur():
+	"""
+	création de la table qui va contenir les informations à propos des joueurs
+	"""
+	c.executescript("""
+	CREATE TABLE IF NOT EXISTS joueurs(
+	id_joueur INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
+	pseudo TEXT,
+	)""")
+
+def creer_relation_grilles_resolues():
+	"""
+	création de la relation 0N GRILLES, 0N JOUEURS qui contiendra les statistiques du joueur
+	"""
+	c.executescript("""
+	CREATE TABLE IF NOT EXISTS grilles_resolues(
+	reussite TEXT,
+	temps TEXT
+	)""")
+
 def grid_to_text(grid):
 	"""
 	compile la grille sous forme de texte
