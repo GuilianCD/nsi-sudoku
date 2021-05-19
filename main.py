@@ -46,15 +46,13 @@ if __name__ == "__main__":
 	myappid = 'nsiedouardbranly.ggr.supersudoku' # ggr est l'acronyme des prénoms de chacun des membres du groupe
 	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
-	#grid = logic.text_to_grid("9:&&&&&&&&&&$3&&&$9&$6&&&&&&&&&&$7&&&$6&&&&&&&&&&&$8&&&&&&$4&&&&$5&&&&&&&&&&&&&&$1&&&&$2&&&&&")
+	# Au démarrage, appeller les fonctions qui créent si besoin la base de données.
+	logic.creer_table_joueurs()
+	logic.creer_table_grilles()
+	logic.creer_relation_grilles_resolues()
 
-	"""
-	for x in range(9):
-		for y in range(9):
-			grid.set_number((x, y), random.randint(0, 9))
-	"""
-
+	#Initialiser la partie graphique
 	sudogame = graphics.Game(width=WIDTH, height=HEIGHT, theme=Themes.DEFAULT)
-	sudogame.add_pages(*graphics.get_pages(sudogame, WIDTH, HEIGHT))
-	sudogame.mainloop()
+	sudogame . add_pages(*graphics.get_pages(sudogame, WIDTH, HEIGHT))
+	sudogame . mainloop()
 	
