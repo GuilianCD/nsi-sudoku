@@ -72,3 +72,49 @@ class BetterEntry():
 
 	def get(self):
 		return self.widget.get()
+
+class ScrollableFrame():
+
+	def __init__(self, master, width, height, grid_row=0, grid_col=0, space_inbetween_elements=0, **kwargs):
+		"""
+		Une ScrollableFrame est une frame pouvant défiler (seulement verticalement !).
+
+		grid_row et grid_col sont les paramètres qui seront passés à grid() de ce "widget",
+		car il s'affiche tout seul.
+
+		space_inbetween_elements est la marge qui séparera deux éléments dans la liste,
+		en pixels.
+		"""
+		#Le container est la frame qui contiendra l'autre frame, cette dernière étant celle qui va défiler
+		self.container = Frame(master, width=width, height=height, **kwargs)
+		self.container.grid()
+		self.container.grid_propagate(0)
+
+		self.scrollable = Frame(self.container, width=width, **kwargs)
+
+		self.contained = list()
+		
+
+	def add_item(self, item):
+		"""
+		Cette fonction ajoute l'item à la liste des éléments contenus dans le menu défilant.
+		"""
+		self.contained.append(item)
+
+	@property
+	def widget(self):
+		"""
+		Appeler cette priorité pour obtenir le widget
+		a utiliser comme parent dans l'architecture
+		tkinter.
+		"""
+		return self.scrollable
+
+
+	def __getattr__(self, attr):
+		"""
+		Si l'on appelle par exemple ScrollableFrame.grid(), il y aurait
+		normalement une erreur : ici on empêche cette erreur en passant
+		si besoin l'attribut du même nom du container.
+		"""
+		return getattr(self.container, f'{attr}')

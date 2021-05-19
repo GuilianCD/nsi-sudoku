@@ -121,7 +121,6 @@ def create_gridchoice_menu(sudogame, width, height):
 	content_scroll_y = IntVar(gridchoice_menu, 0)
 
 	top_frame = Frame(gridchoice_menu, **theme.frame(sudogame.theme), width=width, height=height-BOTTOM_FRAME_SIZE)
-	#top_frame.grid_columnconfigure(0, weight=1)
 	top_frame.grid(row=0)
 
 	grids_content = Frame(top_frame, **theme.frame(sudogame.theme), width=width, height=(OPTION_SIZE + SPACE_BETWEEN_SIZE)*len(grids))
@@ -162,7 +161,7 @@ def create_gridchoice_menu(sudogame, width, height):
 		else:
 			grid = grids[chosen_grid.get()]
 
-		sudogame.grid.set(grid)
+		sudogame.grid.set(grid) 
 		sudogame.get_page("grid").init_grid()
 
 		sudogame.switch_front_page_to("grid")
@@ -264,10 +263,16 @@ def create_difficulty_menu(sudogame, width, height):
 	counter = RowCounter()
 
 	def difficulty_callback(difficulty):
-		sudogame.difficulty.set(difficulty)
+		if difficulty != '':
+			#TODO choisir une grille dans la db du niveau demandé
+			sudogame.grid.set("9:&&&&&&&&&&$3&&&$9&$6&&&&&&&&&&$7&&&$6&&&&&&&&&&&$8&&&&&&$4&&&&$5&&&&&&&&&&&&&&$1&&&&$2&&&&&")
+			sudogame.get_page("grid").init_grid()
+			#TODO end
 
-		sudogame.switch_front_page_to("gridchoice")
-
+			sudogame.switch_front_page_to("grid")
+		else:
+			sudogame.difficulty.set(difficulty)		
+			sudogame.switch_front_page_to("gridchoice")		
 
 	#Fait que la colonne prendra le maximum d'espace disponible
 	difficulty_menu.grid_columnconfigure(0, weight=1)
@@ -292,6 +297,11 @@ def create_difficulty_menu(sudogame, width, height):
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
 
 	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("expert"), **theme.button(current_theme), width=BTN_WIDTH)
+	expert_btn.grid(row=counter.next())
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=4)
+
+	expert_btn = Button(difficulty_menu, text="Lister toutes les grilles",  command=lambda : difficulty_callback(""), **theme.button(current_theme), width=BTN_WIDTH * 2)
 	expert_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=100)
