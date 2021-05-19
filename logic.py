@@ -21,7 +21,7 @@ def creer_table_grilles():
 	difficulte TEXT
 	)""")
 
-def creer_table_joueur():
+def creer_table_joueurs():
 	"""
 	création de la table qui va contenir les informations à propos des joueurs
 	"""
