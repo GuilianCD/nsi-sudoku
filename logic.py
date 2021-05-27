@@ -128,6 +128,15 @@ def squares(grid):
 			output[squarepos(row,column)].append(grid.get_number((row,column)))#on ajoute l'element actuel dans la bonne liste			
 	return output
 
+def square_to_grid(squarelist):
+	"""
+	Fait par Gabin Maury
+	Prends la liste des carrés d'un grille et retourne la grille (objet)
+	"""
+	grid = []
+
+
+	return grid
 
 def columns(grid):
 	"""
@@ -142,8 +151,6 @@ def columns(grid):
 		columns.append(column)
 
 	return columns
-
-	return columns
 		
 
 
@@ -155,3 +162,24 @@ if __name__ == '__main__':
 	    grid.set_number((x, y), random.randint(0, 9))
 	pprint(rows(grid))
 	pprint(columns(grid))
+
+
+def shuffle_grid(grid):
+	"""
+	Fait par Gabin Maury
+	prends en argument une grille de sudoku (objet) et retourne la grille
+	melangée toujours valide pour creer de nouvelles grilles
+	"""
+	squarelist = squares(grid)
+	squarerows = [squarelist[:3],squarelist[3:6],squarelist[6:]] #prends la liste des collones de carrés et la melange
+	squarecolumns = [[][][]]
+	for i in range(len(squarelist)):
+		squarecolumns[i%3].append(squarelist[i])
+
+
+	for i in range(random.randint()):
+
+
+	newgrid = []
+
+	return newgrid
