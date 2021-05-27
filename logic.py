@@ -28,7 +28,7 @@ def creer_table_joueurs():
 	c.executescript("""
 	CREATE TABLE IF NOT EXISTS joueurs(
 	id_joueur INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-	pseudo TEXT,
+	pseudo TEXT
 	)""")
 
 def creer_relation_grilles_resolues():
