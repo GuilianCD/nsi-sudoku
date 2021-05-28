@@ -12,6 +12,7 @@ import common
 import theme
 
 import logic
+import database
 
 from graph_utils import (
 	RowCounter,
@@ -47,6 +48,22 @@ def get_pages(sudogame, width, height, size=2):
 
 	gridchoice = create_gridchoice_menu(sudogame, width, height)
 
+	##################################################
+	################ Menu des bravos #################
+	##################################################
+
+	bravoFrame = Frame(sudogame.root, width=width, height=height, **theme.frame(sudogame.theme))
+	bravoFrame.grid_propagate(0)
+
+	label = Label(bravoFrame, **theme.label(sudogame.theme), text="Bravo ! Vous avez 'complété' la grille !", font=('Arial', 14), bg=sudogame.theme.color_scheme['secondary_dark'])
+	label.grid(row=0, sticky='')
+
+	Button(bravoFrame, text="Revenir au menu principal", width=40, height=2, **theme.button(sudogame.theme), command=lambda : sudogame.switch_front_page_to('difficultymenu')).grid(row=1)
+
+
+	##################################################
+
+
 	mode_menu.grid()
 	sudoframe.grid()
 	difficulty_menu.grid()
@@ -56,7 +73,8 @@ def get_pages(sudogame, width, height, size=2):
 		"guestmenu": mode_menu,
 		"grid": sudoframe,
 		"difficultymenu": difficulty_menu,
-		"gridchoice" : gridchoice
+		"gridchoice" : gridchoice,
+		"bravomenu": bravoFrame
 	}, "guestmenu" #Indique quel menu sera le premier
 
 
@@ -90,29 +108,12 @@ def create_gridchoice_menu(sudogame, width, height):
 	gridchoice_menu.grid_rowconfigure(0, weight=1)
 
 
-	#######################################################
-	##################  TEMPORAIRE ########################
-	#######################################################
+	sudokugrids = database.fetch_all_grids()
 
-	def generate_grid():
-		nums = []
-		for _ in range(10):
-			nums.append(random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9]))
-
-		c = RowCounter()
-
-		def next():
-			return nums[c.next()]
-
-		return f"9:&&&&&&&&&&${next()}&&&${next()}&${next()}&&&&&&&&&&${next()}&&&${next()}&&&&&&&&&&&${next()}&&&&&&${next()}&&&&${next()}&&&&&&&&&&&&&&${next()}&&&&${next()}&&&&&"
-		
 	grids = []
-	for _ in range(7):
-		grids.append(generate_grid())
+	for grid in sudokugrids:
+		grids.append(grid)
 
-	#######################################################
-	#######################################################
-	
 
 	BOTTOM_FRAME_SIZE = 160
 	OPTION_SIZE = 140
@@ -159,7 +160,7 @@ def create_gridchoice_menu(sudogame, width, height):
 		if chosen_grid.get() == -1:
 			grid = custom_grid_entry.get()
 		else:
-			grid = grids[chosen_grid.get()]
+			grid = grids[chosen_grid.get()][0]
 
 		sudogame.grid.set(grid) 
 		sudogame.get_page("grid").init_grid()
@@ -176,15 +177,17 @@ def create_gridchoice_menu(sudogame, width, height):
 	content_counter = RowCounter()
 
 	for index, grid in enumerate(grids):
+		grille, difficulte = grid
+
 		i = content_counter.next()
 		fr = Frame(grids_content, **theme.frame(sudogame.theme), height=OPTION_SIZE, width=width, borderwidth=4, relief=RIDGE)
 		fr.grid_propagate(0)
 		fr.grid(row=i)
 
-		curr_grid = logic.text_to_grid(grid)
+		curr_grid = logic.text_to_grid(grille)
 
-		CNV_BOX_SIZE = 15
-		HALF_BOX = 8
+		CNV_BOX_SIZE = 13
+		HALF_BOX = 7
 		CNV_OFFSET = 2
 
 		cnv_width = CNV_BOX_SIZE * curr_grid.size
@@ -194,19 +197,20 @@ def create_gridchoice_menu(sudogame, width, height):
 
 		cnv.create_rectangle(0, 0, cnv_width, cnv_height, fill='black')
 
-		for x in range(curr_grid.size):
-			for y in range(curr_grid.size):
+		for x in range(curr_grid.size + 1):
+			for y in range(curr_grid.size + 1):
 				x1, y1 = CNV_OFFSET + x + x * CNV_BOX_SIZE, CNV_OFFSET + y + y * CNV_BOX_SIZE
+
 				cnv.create_rectangle(x1, y1, x1 + CNV_BOX_SIZE, y1 + CNV_BOX_SIZE , fill='white')
 
-				cnv.create_text(x1 - HALF_BOX, y1 - HALF_BOX, text=curr_grid.get_number((x, y)))
+				cnv.create_text(x1 - HALF_BOX, y1 - HALF_BOX, text=curr_grid.get_number((x-1, y-1)))
 
 		cnv.grid(row=0, rowspan=10)
 
 
-		Label(fr, text="SAMPLE BIG TEXT", **theme.label(sudogame.theme), font=('Arial', 30)).grid(row=1, column=1, sticky=W)
+		Label(fr, text="Grille #" + str(index+1), **theme.label(sudogame.theme), font=('Arial', 30)).grid(row=1, column=1, sticky=W)
 		
-		Label(fr, text="sample text", **theme.label(sudogame.theme), font=('Arial', 10)).grid(row=2, column=1, sticky=W)
+		Label(fr, text="Difficulté : " + str(difficulte), **theme.label(sudogame.theme), font=('Arial', 10)).grid(row=2, column=1, sticky=W)
 
 		fr.grid_rowconfigure(3, weight=1)
 		fr.grid_columnconfigure(2, weight=1)
@@ -264,10 +268,13 @@ def create_difficulty_menu(sudogame, width, height):
 
 	def difficulty_callback(difficulty):
 		if difficulty != '':
-			#TODO choisir une grille dans la db du niveau demandé
+			"""
+			#Debug
 			sudogame.grid.set("9:&&&&&&&&&&$3&&&$9&$6&&&&&&&&&&$7&&&$6&&&&&&&&&&&$8&&&&&&$4&&&&$5&&&&&&&&&&&&&&$1&&&&$2&&&&&")
+			"""
+
+			sudogame.grid.set(database.fetch_random_grid_with_difficulty(difficulty))
 			sudogame.get_page("grid").init_grid()
-			#TODO end
 
 			sudogame.switch_front_page_to("grid")
 		else:
@@ -286,17 +293,17 @@ def create_difficulty_menu(sudogame, width, height):
 
 	BTN_WIDTH = 10
 	
-	easy_btn   = Button(difficulty_menu, text="Facile",  command=lambda : difficulty_callback("easy"),   **theme.button(current_theme), width=BTN_WIDTH)
+	easy_btn   = Button(difficulty_menu, text="Facile",  command=lambda : difficulty_callback("facile"),   **theme.button(current_theme), width=BTN_WIDTH)
 	easy_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
 
-	medium_btn = Button(difficulty_menu, text="Moyen",   command=lambda : difficulty_callback("medium"), **theme.button(current_theme), width=BTN_WIDTH)
+	medium_btn = Button(difficulty_menu, text="Moyen",   command=lambda : difficulty_callback("moyenne"), **theme.button(current_theme), width=BTN_WIDTH)
 	medium_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
 
-	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("expert"), **theme.button(current_theme), width=BTN_WIDTH)
+	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("difficile"), **theme.button(current_theme), width=BTN_WIDTH)
 	expert_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=4)
@@ -538,6 +545,9 @@ class SudokuFrame(Frame):
 					opt = ""
 
 				button['text'] = str(opt)
+
+				if logic.is_grid_full(grid):
+					sudogame.switch_front_page_to('bravomenu')
 
 
 		#BUTTONCOLOREXPL <-------------

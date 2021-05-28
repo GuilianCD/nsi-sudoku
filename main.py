@@ -31,6 +31,7 @@ import graphics
 import theme as Themes
 import common
 import logic
+import database
 
 
 WIDTH, HEIGHT = 1000, 800
@@ -47,9 +48,9 @@ if __name__ == "__main__":
 	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 	# Au démarrage, appeller les fonctions qui créent si besoin la base de données.
-	logic.creer_table_joueurs()
-	logic.creer_table_grilles()
-	logic.creer_relation_grilles_resolues()
+	database.creer_table_joueurs()
+	database.creer_table_grilles()
+	database.creer_table_grilles_resolues()
 
 	#Initialiser la partie graphique
 	sudogame = graphics.Game(width=WIDTH, height=HEIGHT, theme=Themes.DEFAULT)

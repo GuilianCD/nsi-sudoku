@@ -1,53 +1,6 @@
-import sqlite3
 import common
 import random
 
-# Création de la connection à la base de données
-# Base crée dans le repertoire courant si elle n'existe pas encore
-conn = sqlite3.connect("locale/sudoku.db")
-
-# Création d'un curseur
-c = conn.cursor()
-
-def get_cursor():
-	return c
-
-def creer_table_grilles():
-	"""
-	création de la table qui va contenir les différentes grilles
-	"""
-	c.executescript("""
-	CREATE TABLE IF NOT EXISTS grilles(
-	id_grille INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-	grille TEXT,
-	difficulte TEXT
-	)""")
-
-def creer_table_joueurs():
-	"""
-	création de la table qui va contenir les informations à propos des joueurs
-	"""
-	c.executescript("""
-	CREATE TABLE IF NOT EXISTS joueurs(
-	id_joueur INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE,
-	pseudo TEXT UNIQUE,
-	mot_de_passe TEXT
-	)""")
-
-def creer_table_grilles_resolues(id_joueur, id_grille):
-	"""
-	création de la table grilles résolues de relations
-	grilles, joueurs qui contiendra les informations d'un joueur sur une grille donnée
-
-	"""
-	c.executescript("""
-	CREATE TABLE IF NOT EXISTS grilles_resolues(
-	id_grille_resolue INTEGER,
-	FOREIGN KEY(id_grille_resolue) REFERENCES grilles(id_grille),
-	id_grille_joueur INTEGER,
-	FOREIGN KEY(id_grille_joueur) REFERENCES joueurs(id_joueur),
-	reussite TEXT
-	)""")
 
 def grid_to_text(grid):
 	"""
@@ -90,9 +43,9 @@ def text_to_grid(text):
 		i += 1
 
 	grid = []
-	for x in range(grid_size) :
+	for y in range(grid_size) :
 		grid_row = []
-		for y in range(grid_size) :
+		for x in range(grid_size) :
 			grid_row.append(val_list[x * grid_size + y])
 		grid.append(grid_row)
 
@@ -181,6 +134,23 @@ def shuffle_grid(grid):
 
 	return newgrid
 
+def is_grid_full(grid):
+	"""
+	Renvoie vrai si la grille
+	est pleine.
+	Utilisée pour l'instant pour
+	contrecarrer l'absence d'un
+	resolveur pour analyser
+	si les nombres entrés sont
+	corrects
+
+	Par Guilian Celin-Davanture
+	"""
+	for x in range(grid.size):
+		for y in range(grid.size):
+			if grid.get_number((x, y)) == None:
+				return False
+	return True
 
 
 if __name__ == '__main__':
