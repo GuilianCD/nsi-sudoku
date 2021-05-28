@@ -179,13 +179,13 @@ def shuffle_grid(grid):
 	"""
 	squarelist = squares(grid)
 	squarerows = [squarelist[:3],squarelist[3:6],squarelist[6:]] #prends la liste des collones de carrés et la melange
-	squarecolumns = [[][][]]
+	squarecolumns = [[],[],[],]
 	for i in range(len(squarelist)):
 		squarecolumns[i%3].append(squarelist[i])
 
 
 	for i in range(random.randint()):
-
+		pass
 
 	newgrid = []
 
