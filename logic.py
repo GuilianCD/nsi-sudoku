@@ -161,16 +161,6 @@ def columns(grid):
 	return columns
 
 
-if __name__ == '__main__':
-	from pprint import pprint
-	grid = common.SudokuGrid()
-	for x in range(9):
-	  for y in range(9):
-	    grid.set_number((x, y), random.randint(0, 9))
-	pprint(rows(grid))
-	pprint(columns(grid))
-
-
 def shuffle_grid(grid):
 	"""
 	Fait par Gabin Maury
@@ -190,3 +180,14 @@ def shuffle_grid(grid):
 	newgrid = []
 
 	return newgrid
+
+
+
+if __name__ == '__main__':
+	from pprint import pprint
+	grid = common.SudokuGrid()
+	for x in range(9):
+	  for y in range(9):
+	    grid.set_number((x, y), random.randint(0, 9))
+	pprint(rows(grid))
+	pprint(columns(grid))
