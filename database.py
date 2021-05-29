@@ -19,6 +19,8 @@ c = conn.cursor()
 def commit():
 	"""
 	Permet de commit via une fonction
+
+	Par Guilian Celin-Davanture
 	"""
 	conn.commit()
 
@@ -113,12 +115,21 @@ def ajouter_grilles_resolues(id_grille, id_joueur, reussite):
 def fetch_all_grids_from_player(user_id):
 	"""
 	Renvoie toutes les grilles faites par un joueur
+
+	Par Guilian Celin-Davanture
 	"""
 	return c.execute(f"""
 	SELECT * FROM grilles where id_grille in (SELECT id_grille_resolue FROM grilles_resolues WHERE id_grille_joueur = {user_id})
 	""").fetchall()
 
 def fetch_all_grids():
+	"""
+	Renvoie une liste de toutes les grilles disponibles et jouables
+	(dont la difficulté est differente de 'debug', cette 'difficulté'
+	marquant une grille impossible utilisée seulement pour le déboguage)
+
+	Par Guilian Celin-Davanture
+	"""
 	return c.execute(f"""
 	SELECT grille, difficulte FROM grilles WHERE difficulte <> 'debug'
 	""").fetchall()
@@ -126,6 +137,8 @@ def fetch_all_grids():
 def fetch_random_grid_with_difficulty(diff):
 	"""
 	Renvoie une grille aléatore avec la difficulté choisie.
+
+	Par Guilian Celin-Davanture
 	"""
 	grids = c.execute(f"""
 	SELECT grille FROM grilles WHERE difficulte = ?

@@ -380,6 +380,9 @@ def create_main_menu(sudogame, width, height, size):
 				#Pas d'identifiant et/ou de mdp donné
 				return
 			#Mode connecté
+
+			
+
 			sudogame.switch_front_page_to('difficultymenu')
 
 
