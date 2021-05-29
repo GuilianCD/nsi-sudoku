@@ -1,6 +1,10 @@
 """
 Module par Guilian Celin-Davanture
-Permet l'affichage de la grille
+
+"Permet l'affichage de la grille, entre autres."
+
+Contient la majorité du code relatif à l'interface
+graphique du sudoku, les menus, etc...
 """
 
 from tkinter import *
@@ -54,11 +58,20 @@ def get_pages(sudogame, width, height, size=2):
 
 	bravoFrame = Frame(sudogame.root, width=width, height=height, **theme.frame(sudogame.theme))
 	bravoFrame.grid_propagate(0)
+	
+	#Fait que le menu sera centré
+	bravoFrame.grid_columnconfigure(0, weight=1)
+	bravoFrame.grid_rowconfigure(0, weight=1)
 
-	label = Label(bravoFrame, **theme.label(sudogame.theme), text="Bravo ! Vous avez 'complété' la grille !", font=('Arial', 14), bg=sudogame.theme.color_scheme['secondary_dark'])
-	label.grid(row=0, sticky='')
+	label = Label(bravoFrame, **theme.label(sudogame.theme), text="Bravo ! Vous avez 'complété' la grille !", font=('Arial', 14))
+	label.grid(row=1, sticky='')
 
-	Button(bravoFrame, text="Revenir au menu principal", width=40, height=2, **theme.button(sudogame.theme), command=lambda : sudogame.switch_front_page_to('difficultymenu')).grid(row=1)
+	bravoFrame.grid_rowconfigure(2, minsize=10)
+
+	back = Button(bravoFrame, text="Revenir au menu principal", width=40, height=2, **theme.button(sudogame.theme), command=lambda : sudogame.switch_front_page_to('difficultymenu'))
+	back.grid(row=3)
+
+	bravoFrame.grid_rowconfigure(4, weight=1)
 
 
 	##################################################
@@ -284,6 +297,12 @@ def create_difficulty_menu(sudogame, width, height):
 	#Fait que la colonne prendra le maximum d'espace disponible
 	difficulty_menu.grid_columnconfigure(0, weight=1)
 
+	# Ici, on créé les boutons du menu de choix
+	# de difficulté. On sépare chacun de ces boutons
+	# part un espace, qui est créé grâçe à un 
+	# "difficulty_menu.grid_rowconfigure(counter.next(), weight=XX)"
+	# qui est intercalé entre chaque bouton ou label
+
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=100)
 
 	label = Label(difficulty_menu, text="Choissisez une difficulté.", **theme.label(current_theme), font=("Arial", 25))
@@ -306,7 +325,7 @@ def create_difficulty_menu(sudogame, width, height):
 	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("difficile"), **theme.button(current_theme), width=BTN_WIDTH)
 	expert_btn.grid(row=counter.next())
 
-	difficulty_menu.grid_rowconfigure(counter.next(), weight=4)
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=10)
 
 	expert_btn = Button(difficulty_menu, text="Lister toutes les grilles",  command=lambda : difficulty_callback(""), **theme.button(current_theme), width=BTN_WIDTH * 2)
 	expert_btn.grid(row=counter.next())
@@ -338,10 +357,6 @@ def create_main_menu(sudogame, width, height, size):
 
 	#Petit espace pour séparer le "titre" du reste
 	mode_menu_container.grid_rowconfigure(counter.next(), minsize=20)
-
-	PLACEHOLDER_COLOR = "#5c5c5c"
-	TEXT_COLOR = "#000"
-
 
 	USR_PLACEHOLDER = "Identifiant"
 	PWD_PLACEHOLDER = "Mot de passe"
