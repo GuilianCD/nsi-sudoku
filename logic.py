@@ -1,6 +1,7 @@
 import common
 import random
-
+import database
+from hashlib import sha256
 
 def grid_to_text(grid):
 	"""
@@ -152,6 +153,48 @@ def is_grid_full(grid):
 				return False
 	return True
 
+def hash_password(password):
+	"""
+	Renvoie un hash du mot de passe
+	donné
+
+	Par Guilian Celin-Davanture
+	"""
+	password = password.encode('utf-8')
+
+	sha = sha256()
+	sha.update( password )
+	return sha.hexdigest()
+
+def is_valid_user_pwd(username, password):
+	"""
+	Vérifie si le nom d'uilisateur et le
+	mot de passe donnés existe dans la base
+	et correspondent.
+
+	Renvoie d'abord la réponse (True/False), puis :
+		- si l'utilisateur n'existe pas dans
+		la base de données, False;
+		- si il existe, True.
+
+	Par Guilian Celin-Davanture
+	"""
+	hashed_pwd = database.fetch_password_from_username(username)
+
+	if hashed_pwd is None:
+		return False, False
+
+	given_pwd = hash_password(password)
+
+	return given_pwd == hashed_pwd, True
+
+def creer_joueur(username, rawpassword):
+	"""
+	Créé le joueur dans la base de données
+	en hashant le mot de passe.
+	"""
+	password = hash_password(rawpassword)
+	database.ajouter_joueur(username, password)
 
 if __name__ == '__main__':
 	from pprint import pprint

@@ -96,7 +96,7 @@ def ajouter_grille():
 
 def ajouter_joueur(username, password):
 	c.execute(f"""
-	INSERT or REPLACE INTO joueurs
+	INSERT INTO joueurs
 	(pseudo, mot_de_passe)
 	VALUES(?, ?)
 	""", [username, password])
@@ -119,8 +119,35 @@ def fetch_all_grids_from_player(user_id):
 	Par Guilian Celin-Davanture
 	"""
 	return c.execute(f"""
-	SELECT * FROM grilles where id_grille in (SELECT id_grille_resolue FROM grilles_resolues WHERE id_grille_joueur = {user_id})
+	SELECT * FROM grilles WHERE id_grille in (SELECT id_grille_resolue FROM grilles_resolues WHERE id_grille_joueur = {user_id})
 	""").fetchall()
+
+def fetch_password_from_username(username):
+	"""
+	Renvoie le mot de passe associé au nom d'utilisateur,
+	ou None si aucun utilisateur de ce nom existe.
+
+	Par Guilian Celin-Davanture
+	"""
+	return c.execute(f"""
+	SELECT mot_de_passe FROM joueurs WHERE pseudo = ?
+	""", [username,]).fetchone()[0]
+
+def create_relation_username_grille_id(username, grille_id):
+	"""
+	Va créer une relation entre un utilisateur et la grille
+	désignée par l'id donnée.
+
+	Par Guilian Celin-Davanture
+	"""
+	userid = c.execute(f"""
+	SELECT id_joueur FROM joueurs WHERE pseudo = ?
+	""", [username,]).fetchone()[0]
+
+	# la colomne de reussite contiendra une chaine de caractères
+	# correspondant à une version spécifique.
+	ajouter_grilles_resolues(grille_id, userid, 'vxb1reussie')
+
 
 def fetch_all_grids():
 	"""
@@ -131,8 +158,28 @@ def fetch_all_grids():
 	Par Guilian Celin-Davanture
 	"""
 	return c.execute(f"""
-	SELECT grille, difficulte FROM grilles WHERE difficulte <> 'debug'
+	SELECT id_grille, grille, difficulte FROM grilles WHERE difficulte <> 'debug'
 	""").fetchall()
+
+def has_grid_been_done_by(grille_id, username):
+	"""
+	Renvoie True si la grille à été faite par le joueur.
+
+	Par Guilian Celin-Davanture
+	"""
+	userid = c.execute(f"""
+	SELECT id_joueur FROM joueurs WHERE pseudo = ?
+	""", [username,]).fetchone()[0]
+
+	grids = fetch_all_grids_from_player(userid)
+
+	for grid in grids:
+		id, _, _ = grid
+
+		if id == grille_id:
+			return True
+			
+	return False
 
 def fetch_random_grid_with_difficulty(diff):
 	"""
@@ -141,10 +188,10 @@ def fetch_random_grid_with_difficulty(diff):
 	Par Guilian Celin-Davanture
 	"""
 	grids = c.execute(f"""
-	SELECT grille FROM grilles WHERE difficulte = ?
+	SELECT * FROM grilles WHERE difficulte = ?
 	""", [diff,]).fetchall()
 
-	grid = random.choice(grids)[0]
+	grid = random.choice(grids)
 
 	return grid
 
@@ -152,11 +199,9 @@ def fetch_random_grid_with_difficulty(diff):
 if __name__ == '__main__':
 	curseur = c
 
-	inp = input('Drop ? (Y)')
-	if inp == 'Y':
-		curseur.execute('DROP TABLE IF EXISTS grilles')
-		curseur.execute('DROP TABLE IF EXISTS joueurs')
-		curseur.execute('DROP TABLE IF EXISTS grilles_resolues')
+	inp = input('Drop table ? (grilles/joueurs/grille_resolues)')
+	if inp != '':
+		curseur.execute(f'DROP TABLE IF EXISTS {inp}')
 		commit()
 
 	#Création des tables si elles n'existent pas

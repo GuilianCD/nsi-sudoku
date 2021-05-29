@@ -63,7 +63,7 @@ def get_pages(sudogame, width, height, size=2):
 	bravoFrame.grid_columnconfigure(0, weight=1)
 	bravoFrame.grid_rowconfigure(0, weight=1)
 
-	label = Label(bravoFrame, **theme.label(sudogame.theme), text="Bravo ! Vous avez 'complété' la grille !", font=('Arial', 14))
+	label = Label(bravoFrame, **theme.label(sudogame.theme), text="Bravo ! Vous avez complété la grille !", font=('Arial', 14))
 	label.grid(row=1, sticky='')
 
 	bravoFrame.grid_rowconfigure(2, minsize=10)
@@ -173,7 +173,7 @@ def create_gridchoice_menu(sudogame, width, height):
 		if chosen_grid.get() == -1:
 			grid = custom_grid_entry.get()
 		else:
-			grid = grids[chosen_grid.get()][0]
+			grid = grids[chosen_grid.get()][1]
 
 		sudogame.grid.set(grid) 
 		sudogame.get_page("grid").init_grid()
@@ -190,7 +190,7 @@ def create_gridchoice_menu(sudogame, width, height):
 	content_counter = RowCounter()
 
 	for index, grid in enumerate(grids):
-		grille, difficulte = grid
+		_, grille, difficulte = grid
 
 		i = content_counter.next()
 		fr = Frame(grids_content, **theme.frame(sudogame.theme), height=OPTION_SIZE, width=width, borderwidth=4, relief=RIDGE)
@@ -286,8 +286,12 @@ def create_difficulty_menu(sudogame, width, height):
 			sudogame.grid.set("9:&&&&&&&&&&$3&&&$9&$6&&&&&&&&&&$7&&&$6&&&&&&&&&&&$8&&&&&&$4&&&&$5&&&&&&&&&&&&&&$1&&&&$2&&&&&")
 			"""
 
-			sudogame.grid.set(database.fetch_random_grid_with_difficulty(difficulty))
+			id, grille, _ = database.fetch_random_grid_with_difficulty(difficulty)
+
+			sudogame.grid.set(grille)
 			sudogame.get_page("grid").init_grid()
+
+			sudogame.grid_db_id = id
 
 			sudogame.switch_front_page_to("grid")
 		else:
@@ -355,8 +359,17 @@ def create_main_menu(sudogame, width, height, size):
 	mainlabel = Label(mode_menu_container, text="Bienvenue.", font=("Arial", 25), **theme.label(grid_theme))
 	mainlabel.grid(row=counter.next())
 
+	sublabel = Label(mode_menu_container, text="Un compte sera créé si vous essayez de vous connecter à un compte inexistant.", font=("Arial", 10), **theme.label(grid_theme))
+	sublabel.grid(row=counter.next())
+
 	#Petit espace pour séparer le "titre" du reste
-	mode_menu_container.grid_rowconfigure(counter.next(), minsize=20)
+	mode_menu_container.grid_rowconfigure(counter.next(), minsize=10)
+
+	login_result_text = StringVar(mode_menu_container, '')
+	login_result_label = Label(mode_menu_container, textvariable=login_result_text, font=("Arial", 16), **theme.label(grid_theme), fg='red')
+	login_result_label.grid(row=counter.next())
+
+	mode_menu_container.grid_rowconfigure(counter.next(), minsize=10)
 
 	USR_PLACEHOLDER = "Identifiant"
 	PWD_PLACEHOLDER = "Mot de passe"
@@ -378,12 +391,24 @@ def create_main_menu(sudogame, width, height, size):
 		else:
 			if not (username and password):
 				#Pas d'identifiant et/ou de mdp donné
+				login_result_text.set("Veuillez remplir les cases pour vous connecter.")
 				return
 			#Mode connecté
 
-			
+			valid, exists_in_db = logic.is_valid_user_pwd(username, password)
+
+			if not exists_in_db:
+				logic.creer_joueur(username, password)
+			else:
+				if not valid:
+					login_result_text.set("Veuillez entrer le mot de passe correspondant au nom d'uilisateur")
+					return
+
+			#Sera utile plus tard
+			sudogame.identifiers = (username, password)
 
 			sudogame.switch_front_page_to('difficultymenu')
+
 
 
 	def get_text(entry, placeholder_to_check_against):
@@ -563,8 +588,15 @@ class SudokuFrame(Frame):
 					opt = ""
 
 				button['text'] = str(opt)
+				
+				#FIXME La deuxième condition (True) est ici pour rappeler qu'il faut
+				#	   implémenter les tests relatifs au solveur.
+				if logic.is_grid_full(grid) and True:
+					#Ici on considère que l'utilisateur à terminé sa partie.
+					#On enregistre donc ceci dans la base de données.
 
-				if logic.is_grid_full(grid):
+					database.create_relation_username_grille_id(sudogame.identifiers[0], sudogame.grid_db_id)
+
 					sudogame.switch_front_page_to('bravomenu')
 
 
@@ -713,6 +745,12 @@ class Game:
 
 		self.pages = {}
 		self.current_page = ""
+
+		#Cet attribut stockera les identifiants de l'utilisateur actuel
+		self.identifiers = (None, None)
+
+		#Cet attribut stockera la clé primaire de la grille dans la base de données.
+		self.grid_db_id = -1
 
 		self.grid = StringVar(self.root)
 
