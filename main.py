@@ -26,6 +26,7 @@ Version du 29/03/2021
 from tkinter import * 
 
 import random	
+import os
 
 import graphics
 import theme as Themes
@@ -46,6 +47,12 @@ if __name__ == "__main__":
 	import ctypes
 	myappid = 'nsiedouardbranly.ggr.supersudoku' # ggr est l'acronyme des prénoms de chacun des membres du groupe
 	ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+	# Crée le dossier "locale" si il n'existe pas.
+	# Ce dossier est nécéssaire au fonctionnement
+	# du programme.
+	if not os.path.exists('locale'):
+		os.makedirs('locale')
 
 	# Au démarrage, appeller les fonctions qui créent si besoin la base de données.
 	database.creer_table_joueurs()

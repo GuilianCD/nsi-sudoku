@@ -199,9 +199,9 @@ def fetch_random_grid_with_difficulty(diff):
 if __name__ == '__main__':
 	curseur = c
 
-	inp = input('Drop table ? (grilles/joueurs/grille_resolues)')
+	inp = input('Drop table ? (grilles/joueurs/grilles_resolues)')
 	if inp != '':
-		curseur.execute(f'DROP TABLE IF EXISTS {inp}')
+		curseur.execute(f'DROP TABLE {inp}')
 		commit()
 
 	#Création des tables si elles n'existent pas
