@@ -49,8 +49,22 @@ def get_pages(sudogame, width, height, size=2):
 	difficulty_menu = create_difficulty_menu(sudogame, width, height)
 
 	##################################################
+	################ Menu des grilles ################
+	##################################################
 
 	gridchoice = create_gridchoice_menu(sudogame, width, height)
+
+	##################################################
+	################ Menu des options ################
+	##################################################
+
+	optionsFrame = Frame(sudogame.root, width=width, height=height, **theme.frame(sudogame.theme))
+
+	optionsFrame.grid_propagate(0)
+	
+	#Fait que le menu sera centré
+	optionsFrame.grid_columnconfigure(0, weight=1)
+	optionsFrame.grid_rowconfigure(0, weight=1)
 
 	##################################################
 	################ Menu des bravos #################
@@ -89,7 +103,6 @@ def get_pages(sudogame, width, height, size=2):
 		"gridchoice" : gridchoice,
 		"bravomenu": bravoFrame
 	}, "guestmenu" #Indique quel menu sera le premier
-
 
 def create_gridchoice_menu(sudogame, width, height):
 	"""
@@ -279,21 +292,58 @@ def create_difficulty_menu(sudogame, width, height):
 
 	counter = RowCounter()
 
-	def difficulty_callback(difficulty):
+	def difficulty_callback(difficulty, play_new):
 		if difficulty != '':
 			"""
 			#Debug
 			sudogame.grid.set("9:&&&&&&&&&&$3&&&$9&$6&&&&&&&&&&$7&&&$6&&&&&&&&&&&$8&&&&&&$4&&&&$5&&&&&&&&&&&&&&$1&&&&$2&&&&&")
 			"""
-
 			id, grille, _ = database.fetch_random_grid_with_difficulty(difficulty)
+
+			#Variable qui sera 1 si il à été impossible de trouver une grille
+			#jamais faite par le joueur.
+			unable_to_new = IntVar(difficulty_menu, 0)
+
+			if play_new:
+				"""
+				while database.has_grid_been_done_by(id, ):
+					id, grille, _ = database.fetch_random_grid_with_difficulty(difficulty)
+				"""
+
+				played_grids = database.fetch_all_grids_from_player(database.fetch_player_id(sudogame.identifiers[0]))
+
+				#Trie toutes les grilles du joueur et ne garde que celle dont la difficulté est de celle recherchée.
+				played_grids_with_difficulty = []
+				for grid in played_grids:
+					_, _, grid_diff = grid
+					if grid_diff == difficulty:
+						played_grids_with_difficulty.append(grid)
+					
+
+				all_grids = database.fetch_all_grids_with_difficulty(difficulty)
+
+				if len(all_grids) <= len(played_grids_with_difficulty):
+					#Impossible de jouer une grille jamais jouée ; le joueur à joué toutes les grilles de cette difficulté.
+					unable_to_new.set(1)
+					pass
+				else:
+					while True:
+						grid = database.fetch_random_grid_with_difficulty(difficulty)
+						if grid not in played_grids_with_difficulty:
+							id, grille, _ = grid
+							break
+
 
 			sudogame.grid.set(grille)
 			sudogame.get_page("grid").init_grid()
 
 			sudogame.grid_db_id = id
 
-			sudogame.switch_front_page_to("grid")
+			if unable_to_new.get() == 1:
+				already_played.set('Vous avez joué toutes les grilles disponibles ! Chargement d\'une grille déja jouée...')
+				difficulty_menu.after(4000, lambda : sudogame.switch_front_page_to("grid") )
+			else:
+				sudogame.switch_front_page_to("grid")
 		else:
 			sudogame.difficulty.set(difficulty)		
 			sudogame.switch_front_page_to("gridchoice")		
@@ -314,24 +364,37 @@ def create_difficulty_menu(sudogame, width, height):
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=10)
 
+	play_new = IntVar(difficulty_menu, 0)
+
+	Checkbutton(difficulty_menu, text="Jouer uniquement de nouvelles grilles",variable=play_new, onvalue=1, offvalue=0).grid(row=counter.next()) 
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=3)
+
+	already_played = StringVar(difficulty_menu, '')
+
+	already_played_label = Label(difficulty_menu, textvariable=already_played, **theme.label(current_theme), font=("Arial", 10), fg='red')
+	already_played_label.grid(row=counter.next())  
+
+	difficulty_menu.grid_rowconfigure(counter.next(), weight=3) 
+
 	BTN_WIDTH = 10
 	
-	easy_btn   = Button(difficulty_menu, text="Facile",  command=lambda : difficulty_callback("facile"),   **theme.button(current_theme), width=BTN_WIDTH)
+	easy_btn   = Button(difficulty_menu, text="Facile",  command=lambda : difficulty_callback("facile", play_new),   **theme.button(current_theme), width=BTN_WIDTH)
 	easy_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
 
-	medium_btn = Button(difficulty_menu, text="Moyen",   command=lambda : difficulty_callback("moyenne"), **theme.button(current_theme), width=BTN_WIDTH)
+	medium_btn = Button(difficulty_menu, text="Moyen",   command=lambda : difficulty_callback("moyenne", play_new), **theme.button(current_theme), width=BTN_WIDTH)
 	medium_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=1)
 
-	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("difficile"), **theme.button(current_theme), width=BTN_WIDTH)
+	expert_btn = Button(difficulty_menu, text="Expert",  command=lambda : difficulty_callback("difficile", play_new), **theme.button(current_theme), width=BTN_WIDTH)
 	expert_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=10)
 
-	expert_btn = Button(difficulty_menu, text="Lister toutes les grilles",  command=lambda : difficulty_callback(""), **theme.button(current_theme), width=BTN_WIDTH * 2)
+	expert_btn = Button(difficulty_menu, text="Lister toutes les grilles",  command=lambda : difficulty_callback("", play_new), **theme.button(current_theme), width=BTN_WIDTH * 2)
 	expert_btn.grid(row=counter.next())
 
 	difficulty_menu.grid_rowconfigure(counter.next(), weight=100)

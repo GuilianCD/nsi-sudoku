@@ -111,6 +111,10 @@ def ajouter_grilles_resolues(id_grille, id_joueur, reussite):
 	""", [id_grille, id_joueur, reussite])
 	commit()
 
+def fetch_player_id(username):
+	return c.execute(f"""
+	SELECT id_joueur FROM joueurs WHERE pseudo = ?
+	""", [username,]).fetchone()[0]
 
 def fetch_all_grids_from_player(user_id):
 	"""
@@ -194,6 +198,18 @@ def fetch_random_grid_with_difficulty(diff):
 	grid = random.choice(grids)
 
 	return grid
+
+def fetch_all_grids_with_difficulty(diff):
+	"""
+	Renvoie une grille aléatore avec la difficulté choisie.
+
+	Par Guilian Celin-Davanture
+	"""
+	grids = c.execute(f"""
+	SELECT * FROM grilles WHERE difficulte = ?
+	""", [diff,]).fetchall()
+	
+	return grids
 
 
 if __name__ == '__main__':
