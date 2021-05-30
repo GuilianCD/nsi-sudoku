@@ -22,9 +22,6 @@ Les auteurs de ce projet sont:
 Version du 29/03/2021
 """
 
-
-from tkinter import * 
-
 import random	
 import os
 

@@ -534,7 +534,7 @@ class SudokuFrame(Frame):
 
 		
 		SETTINGS_BTN_SIZE = 10
-		settings_button = Button(self, text="Options", width=SETTINGS_BTN_SIZE, height=int(SETTINGS_BTN_SIZE/2), **theme.button(sudogame.theme))
+		settings_button = Button(self, text="Options", width=SETTINGS_BTN_SIZE, height=int(SETTINGS_BTN_SIZE/2), **theme.button(sudogame.theme), command= )
 		settings_button.grid(row=0, column=0, sticky=NW)
 		
 		

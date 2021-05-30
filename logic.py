@@ -8,6 +8,7 @@ def grid_to_text(grid):
 	compile la grille sous forme de texte
 	ligne par ligne
 	un & signifie un espace
+	Par Romain Gascoin
 	"""
 	text = f"{grid.size}:" #le premier élément du texte est la taille de la grille
 	for x in range(grid.size):
@@ -24,6 +25,7 @@ def text_to_grid(text):
 	"""
 	Prends le texte simplifié de la grille
 	et renvoie l'objet
+	Par Romain Gascoin
 	"""
 
 	text = text.split(':')
@@ -64,8 +66,17 @@ def rows(grid):
 	for x in range(9):
 		row = []
 		for y in range(9):
-			row.append(grid.get_number(x,y))
+			row.append(grid.get_number((x,y)))
 	return rows
+
+def squarepos(x,y):
+	"""
+	Fait par Gabin Maury
+	Prends une position en argument et retourne le numero du carré (de 0 a 8)
+	"""
+	squarecoordx = str(x//3) #recupere la position x du carré actuel
+	squarecoordy = str(y//3) #recupere la position y du carré actuel
+	return int(squarecoordx + squarecoordy,base=3)#relie les deux positions (de 00 a 22), les considère comme un nombre en base 3 et les convertis en base 10 pour obtenir la bonne position de 0 a 8
 
 
 def squares(grid):
@@ -73,13 +84,6 @@ def squares(grid):
 	Fait par Gabin Maury
 	Prend une grille de sudoku (objet) et retourne une liste contenant 9 listes representant les differents carrés de 3x3 dans l'ordre
 	"""
-	def squarepos(x,y):
-		"""
-		Prends une position en argument et retourne le numero du carré (de 0 a 8)
-		"""
-		squarecoordx = str(row//3) #recupere la position x du carré actuel
-		squarecoordy = str(column//3) #recupere la position y du carré actuel
-		return int(squarecoordx + squarecoordy,base=3)#relie les deux positions (de 00 a 22), les considère comme un nombre en base 3 et les convertis en base 10 pour obtenir la bonne position de 0 a 8
 
 
 	output = []
