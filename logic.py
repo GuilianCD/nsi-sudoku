@@ -87,10 +87,10 @@ def squares(grid):
 
 
 	output = []
-	for _ in range(len(grid)):
-		output.append()
-	for row in grid:
-		for column in row:
+	for _ in range(grid.size):
+		output.append([])
+	for row, valuerow in enumerate(grid.grid):
+		for column, _ in enumerate(valuerow):
 			output[squarepos(row,column)].append(grid.get_number((row,column)))#on ajoute l'element actuel dans la bonne liste			
 	return output
 
