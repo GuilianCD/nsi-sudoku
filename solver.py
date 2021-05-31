@@ -9,16 +9,42 @@ def is_num_possible(grid,x,y,num):
 		Fait par Gabin Maury
 		Prends une grille (objet), une position et un nombre et verifie si ce nombre est une entrée valide dans ces coordonnées de la grille.
 		"""
+		if not (num is None):
+			num = int(num)
+
 		for i in range(9): 
+			if i == y:
+				continue
 			if grid.get_number((x, i)) == num: #Verifie si le nombre est dans la colonne
 				return False
+
 		for i in range(9):
+			if i == x:
+				continue
 			if grid.get_number((i, y)) == num: #Verifie si le nombre est dans la ligne
 				return False
+
 		square_list = logic.squares(grid)
-		for number in square_list[logic.squarepos(x,y)]: #Verifie si le nombre est dans le carré
+
+		pos = logic.squarepos(x,y)
+		
+		# On itère dans chaque carré de la grille
+		# il faut donc obtenir des nombres de ce genre :
+		# 0 1 2 | 0 1 2 | 0 1 2
+		# ---------------------
+		# 3 4 5 | 3 4 5 | 3 4 5
+		# ---------------------
+		# 6 7 8 | 6 7 8 | 6 7 8
+		# ---------------------
+		# etc...
+		current_num_pos = (x % 3) + 3 * (y % 3)
+
+		for i, number in enumerate(square_list[pos]): #Verifie si le nombre est dans le carré
+			if i == current_num_pos:
+				continue
 			if number == num:
 				return False
+
 		return True
 
 def solve_grid(grid):
@@ -44,7 +70,6 @@ def solve_grid_v2(grid, current_pos=0, debug=False):
 
 	Par Guilian Celin-Davanture
 	"""
-
 	if current_pos == 81:
 		#On est à la fin de la grille, au 82ème élément, qui n'existe pas
 		return True
@@ -52,6 +77,8 @@ def solve_grid_v2(grid, current_pos=0, debug=False):
 	#On obtient la position (x;y) de la position linéaire
 	y = current_pos // grid.size
 	x = current_pos % grid.size
+
+	grid.set_number((x,y), None)
 
 	#On passe si la case est immuable
 	if grid.is_immutable((x, y)):
@@ -78,7 +105,6 @@ def solve_grid_v2(grid, current_pos=0, debug=False):
 				# donc on essaye un autre chiffre
 				continue
 			else:
-				# Normalement impossible, mais au cas où
 				return True
 
 	# On réinitialise la case, pour éviter des blockages avant
@@ -120,13 +146,13 @@ def show_grid(grid, current=-1):
 	print(result)
 
 if __name__ == '__main__':
-	grid = database.fetch_random_grid_with_difficulty('moyenne')
+	grid = database.fetch_random_grid_with_difficulty('facile')
 	grid = grid[1]
 	grid = logic.text_to_grid(grid)
 	
 	show_grid(grid)
 
-	print(solve_grid_v2(grid))
+	print('Résolue : ' + str(solve_grid_v2(grid)))
 
 	show_grid(grid)
 

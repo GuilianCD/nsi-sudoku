@@ -107,6 +107,8 @@ class SudokuGrid:
 	def set_number(self, pos, value):
 		x, y = pos 
 
+		value = None if value == str(None) else value
+
 		if not self._grid[x][y]['immutable']:
 			self._grid[x][y]['value'] = value
 			return 0
@@ -115,7 +117,34 @@ class SudokuGrid:
 
 	def get_number(self, pos):
 		x, y = pos
-		return self._grid[x][y]['value']
+		value = self._grid[x][y]['value']
+		if value is None:
+			return None
+		else:
+			return int(value)
+
+	def is_same_as(self, other):
+		"""
+		Compare cette grille avec une autre,
+		renvoie True si les grilles font la 
+		même taille, les mêmes chiffres sont
+		au mêmes endroits et les mêmes cases sont immuables.
+
+		Par Guilian Celin-Davanture
+		"""
+		if self.size != other.size:
+			return False
+
+		for x in range(self.size):
+			for y in range(self.size):
+				if self.get_number( (x, y) ) != other.get_number( (x, y) ):
+					return False
+				if self.true_grid[x][y]['immutable'] != other.true_grid[x][y]['immutable']:
+					return False
+
+
+
+		return True
 
 
 

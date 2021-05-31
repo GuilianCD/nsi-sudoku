@@ -2,6 +2,9 @@ import common
 import random
 import database
 from hashlib import sha256
+import copy
+
+import solver
 
 def grid_to_text(grid):
 	"""
@@ -156,6 +159,28 @@ def is_grid_full(grid):
 			if grid.get_number((x, y)) == None:
 				return False
 	return True
+
+def get_solved_copy(grid):
+	copy_grid = common.SudokuGrid(custom_grid= copy.deepcopy(grid.true_grid) )
+
+	solver.solve_grid_v2(copy_grid)
+
+	return copy_grid
+
+def is_grid_solved(grid):
+	"""
+	Teste si la grille est résolue sans
+	affecter la grille
+
+	Par Guilian Celin-Davanture
+	"""
+	#On a besoin d'un vrai clonage et pas juste d'une copy 'shallow'
+	copy_grid = common.SudokuGrid(custom_grid= copy.deepcopy(grid.true_grid) )
+
+	solver.solve_grid_v2(copy_grid)
+
+	return copy_grid.is_same_as(grid)
+
 
 def hash_password(password):
 	"""

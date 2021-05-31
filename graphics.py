@@ -11,6 +11,7 @@ from tkinter import *
 import random
 import math
 from functools import partial
+import solver
 
 import common	
 import theme
@@ -64,7 +65,41 @@ def get_pages(sudogame, width, height, size=2):
 	
 	#Fait que le menu sera centré
 	optionsFrame.grid_columnconfigure(0, weight=1)
-	optionsFrame.grid_rowconfigure(0, weight=1)
+	optionsFrame.grid_rowconfigure(0, weight=100)
+
+
+	Button(optionsFrame, text="Reprendre", width=40, height=2, **theme.button(sudogame.theme), command=lambda : sudogame.switch_front_page_to('grid'))\
+	.grid(row=1)
+
+	optionsFrame.grid_rowconfigure(2, weight=20)
+
+	def solve_and_go_back():
+		grid = sudoframe.solved_grid
+
+		"""
+		grid = logic.text_to_grid(sudogame.grid.get())
+
+		solver.solve_grid_v2(grid)
+		"""
+
+		for y in range(grid.size):
+			for x in range(grid.size):
+				sudoframe.change_button_text((x, y), str( grid.get_number( (x, y) ) ) )
+
+		sudoframe.turn_off_options()
+
+		sudogame.switch_front_page_to('grid')
+
+
+	Button(optionsFrame, text="Obtenir la solution", width=40, height=2, **theme.button(sudogame.theme), command=solve_and_go_back)\
+	.grid(row=3)
+
+	optionsFrame.grid_rowconfigure(4, weight=20)
+
+	Button(optionsFrame, text="Revenir au menu principal", width=40, height=2, **theme.button(sudogame.theme), command=lambda : sudogame.switch_front_page_to('difficultymenu'))\
+	.grid(row=5)
+
+	optionsFrame.grid_rowconfigure(6, weight=100)
 
 	##################################################
 	################ Menu des bravos #################
@@ -101,7 +136,8 @@ def get_pages(sudogame, width, height, size=2):
 		"grid": sudoframe,
 		"difficultymenu": difficulty_menu,
 		"gridchoice" : gridchoice,
-		"bravomenu": bravoFrame
+		"bravomenu": bravoFrame,
+		"optionsingame": optionsFrame,
 	}, "guestmenu" #Indique quel menu sera le premier
 
 def create_gridchoice_menu(sudogame, width, height):
@@ -304,7 +340,7 @@ def create_difficulty_menu(sudogame, width, height):
 			#jamais faite par le joueur.
 			unable_to_new = IntVar(difficulty_menu, 0)
 
-			if play_new:
+			if play_new.get() == 1 and not (sudogame.identifiers[0] is None):
 				"""
 				while database.has_grid_been_done_by(id, ):
 					id, grille, _ = database.fetch_random_grid_with_difficulty(difficulty)
@@ -335,14 +371,13 @@ def create_difficulty_menu(sudogame, width, height):
 
 
 			sudogame.grid.set(grille)
-			sudogame.get_page("grid").init_grid()
-
 			sudogame.grid_db_id = id
 
 			if unable_to_new.get() == 1:
 				already_played.set('Vous avez joué toutes les grilles disponibles ! Chargement d\'une grille déja jouée...')
 				difficulty_menu.after(4000, lambda : sudogame.switch_front_page_to("grid") )
 			else:
+				sudogame.get_page("grid").init_grid()
 				sudogame.switch_front_page_to("grid")
 		else:
 			sudogame.difficulty.set(difficulty)		
@@ -534,7 +569,7 @@ class SudokuFrame(Frame):
 
 		
 		SETTINGS_BTN_SIZE = 10
-		settings_button = Button(self, text="Options", width=SETTINGS_BTN_SIZE, height=int(SETTINGS_BTN_SIZE/2), **theme.button(sudogame.theme), command= )
+		settings_button = Button(self, text="Options", width=SETTINGS_BTN_SIZE, height=int(SETTINGS_BTN_SIZE/2), **theme.button(sudogame.theme), command=lambda : sudogame.switch_front_page_to('optionsingame'))
 		settings_button.grid(row=0, column=0, sticky=NW)
 		
 		
@@ -548,6 +583,25 @@ class SudokuFrame(Frame):
 			**theme.button(sudogame.theme), 
 			command=self.undo)
 		undo_button.grid(row=0, column=2, sticky=SE)
+
+		def show_errors():
+			grid = self.sudogrid
+
+			for x in range(grid.size):
+				for y in range(grid.size):
+					if grid.is_immutable((x, y)) or grid.get_number((x, y)) is None:
+						continue
+					if not solver.is_num_possible(grid, x, y, grid.get_number((x, y)) ):
+						self.gridbuttons[x][y].config(bg='red')
+
+		err_button = Button(
+			self, 
+			text="Erreurs", 
+			width=UNDO_BTN_SIZE, 
+			height=int(UNDO_BTN_SIZE/2)*2, 
+			**theme.button(sudogame.theme), 
+			command=show_errors)
+		err_button.grid(row=0, column=2, sticky=E)
 
 		self.undo_btn = undo_button
 
@@ -621,6 +675,10 @@ class SudokuFrame(Frame):
 		gridmenu.grid(row=1, column=0, columnspan=3)
 
 	def init_grid(self):
+		#Réactive si nécéssaire le menu de choix pour la grille
+		self.turn_on_gridmenu()
+		self.turn_on_undo()
+
 		subgridframe = self.subgridframe
 		sudogame = self.sudogame
 		GRID_SIZE = self.GRID_SIZE
@@ -628,6 +686,8 @@ class SudokuFrame(Frame):
 
 		grid = logic.text_to_grid(sudogame.grid.get())
 		self.sudogrid = grid
+
+		self.solved_grid = logic.get_solved_copy(grid)
 
 		def grid_callback(pos, button):
 			"""
@@ -637,34 +697,44 @@ class SudokuFrame(Frame):
 				pass
 			else:
 				opt = self.current_option.get()
-	
+
+				button.config(bg=button.default_background)
+
 				if grid.get_number(pos) == opt:
 					return
 				if (grid.get_number(pos) is None) and (opt == str(None)):
 					return
+
 				
 				self.play(pos, opt, grid.get_number(pos))
 
-				grid.set_number(pos, opt)
+				grid.set_number(pos, int(opt) if not(opt in ['', str(None)] ) else None )
 
-				if opt == str(None):
+				if opt == str(None) or opt == '':
 					opt = ""
 
 				button['text'] = str(opt)
-				
-				#FIXME La deuxième condition (True) est ici pour rappeler qu'il faut
-				#	   implémenter les tests relatifs au solveur.
-				if logic.is_grid_full(grid) and True:
+
+
+				if logic.is_grid_full(grid) and self.solved_grid.is_same_as(grid):
 					#Ici on considère que l'utilisateur à terminé sa partie.
 					#On enregistre donc ceci dans la base de données.
-
-					database.create_relation_username_grille_id(sudogame.identifiers[0], sudogame.grid_db_id)
+					#Sauf si l'utilisateur à choisit l'anonymité.
+					if sudogame.identifiers[0]:
+						database.create_relation_username_grille_id(sudogame.identifiers[0], sudogame.grid_db_id)
 
 					sudogame.switch_front_page_to('bravomenu')
 
 
 		#BUTTONCOLOREXPL <-------------
 		#BUTTONCOLOREXPL <-------------
+
+		if self.gridbuttons:
+			for button_row in self.gridbuttons:
+				for button in button_row:
+					button.grid_forget()
+
+			self.gridbuttons = []
 
 		every = grid.size//3 #Tout les (taille de la grille divisée par 3 (donc 3 pour une grille normale)), changer de couleur
 
@@ -717,6 +787,8 @@ class SudokuFrame(Frame):
 					height=int(GRID_SIZE//grid.size),
 					font=GRID_AND_MENU_FONT)
 
+				button.default_background = col
+
 				gridbuttonarray.append(button)
 
 				if grid.is_immutable((x1, y1)):
@@ -743,6 +815,32 @@ class SudokuFrame(Frame):
 		
 			self.gridbuttons.append(gridbuttonarray)
 
+	def turn_off_options(self):
+		"""
+		Quand appelée, va désactiver les options
+		de jeu pour le joueur.
+
+		Ces options seront réactivés automatiquement
+		au chargement d'une autre grille.
+		"""
+		self.turn_off_gridmenu()
+		self.turn_off_undo()
+
+
+
+	def change_button_text(self, pos, text):
+		x, y = pos
+		self.gridbuttons[x][y]['text'] = text
+
+	def turn_off_gridmenu(self):
+		for button_row in self.gridbuttons:
+			for button in button_row:
+				button.config(state=DISABLED)
+
+	def turn_on_gridmenu(self):
+		for button_row in self.gridbuttons:
+			for button in button_row:
+				button.config(state=NORMAL)
 
 	def turn_off_undo(self):
 		self.undo_btn.config(state=DISABLED, bg=self.sudogame.theme.color_scheme['button_disabled'])
